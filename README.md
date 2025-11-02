@@ -1,1 +1,0 @@
-# personenortung-wbh-projekt

@@ -1,0 +1,150 @@
+# path: rtls/docker-compose.yaml
+
+services:
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: rtls-mqtt
+    restart: unless-stopped
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./logs:/mosquitto/log
+      # - ./mosquitto/data:/mosquitto/data
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    networks: [rtls_net]
+
+
+  db:
+    image: timescale/timescaledb-ha:pg17
+    container_name: rtls-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [rtls_net]
+
+  # optionales einmaliges Schema-Rollout via psql (idempotent)
+  # db-init:
+  #   image: timescale/timescaledb-ha:pg17
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   command: >
+  #     bash -lc "psql -v ON_ERROR_STOP=1
+  #     postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@db:5432/$${POSTGRES_DB}
+  #     -f /schema/schema.sql"
+  #   volumes:
+  #     - ./db/schema.sql:/schema/schema.sql:ro
+  #   networks: [rtls_net]
+  #   restart: "on-failure"
+
+  api:
+    build:
+      context: ./api
+    container_name: rtls-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - MQTT_BROKER_URL=mqtt://mqtt:1883
+      - SECRET_KEY=${SECRET_KEY}
+      - SCHEMA_PATH=/app/schema.sql
+    volumes:
+      - ./api:/app/api
+      - ./db/schema.sql:/app/schema.sql:ro
+      - ./docs:/docs:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [rtls_net]
+
+
+  ingestor:
+    build: { context: ./ingestor }
+    container_name: rtls-ingestor
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - MQTT_BROKER_HOST=mqtt
+      - MQTT_BROKER_PORT=1883
+      - LOG_LEVEL=DEBUG
+      # - INGEST_USE_MESSAGE_TS=false
+      # - INGEST_AUTO_CREATE_ANCHORS=true
+      # - INGEST_AUTO_CREATE_WEARABLES=true
+      # Größere Batches = effizientere DB-Writes
+      - BATCH_MAX_SIZE=1000
+      # Schneller flushen für Live-Daten
+      - BATCH_MAX_AGE_S=2.5
+      # IDs-Cache häufiger refreshen
+      - IDS_REFRESH_S=30
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [rtls_net]
+
+
+  locator:
+    build: { context: ./locator }
+    container_name: rtls-locator
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
+      # === LIVE-OPTIMIERUNGEN ===
+      # WICHTIG: Kleines Fenster = schnelle Reaktion auf Ausfall!
+      - WINDOW_SECONDS=7
+      # Schnelle Poll-Rate für Live-Updates
+      - POLL_INTERVAL=1.5
+      # Minimum Anchors für Berechnung (Genauigkeit)
+      - MIN_ANCHORS=1
+      # Top-K Anchors für Gewichtung
+      - TOP_K=3
+      # EMA-Glättung (0.2 = moderate Glättung für Live-Daten)
+      - EMA_ALPHA=0.2
+      # TX-Power Referenz
+      - TX_POWER_DBM_AT_1M=-80
+      # Path-Loss-Exponent (Indoor)
+      - PATH_LOSS_EXPONENT=2.2
+      - THROTTLE_S=5.0
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [rtls_net]
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: rtls-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [rtls_net]
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+networks:
+  rtls_net: { driver: bridge }
+
+volumes:
+  db_data:
+  grafana_data:
