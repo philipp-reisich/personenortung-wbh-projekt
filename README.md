@@ -52,8 +52,3 @@ make down
 
 ### 📘 Hinweis:
 Die Datei `.env` enthält alle Konfigurationsparameter (z. B. Zugangsdaten, Ports).  
-
-
----
-
-```
