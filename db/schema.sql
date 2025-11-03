@@ -1,5 +1,4 @@
 -- db/schema.sql
--- Database schema for the BLE RTLS prototype
 
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 CREATE EXTENSION IF NOT EXISTS postgis;
@@ -43,7 +42,7 @@ CREATE INDEX IF NOT EXISTS idx_scans_uid_ts ON scans (uid, ts DESC);
 CREATE INDEX IF NOT EXISTS idx_scans_anchor_ts ON scans (anchor_id, ts DESC);
 CREATE INDEX IF NOT EXISTS idx_scans_emergency_ts ON scans (emergency, ts DESC);
 
--- Positions (hypertable) – erweitert: nearest_anchor_id, dist_m, num_anchors, dists(JSONB)
+-- Positions (hypertable)
 DROP TABLE IF EXISTS positions CASCADE;
 CREATE TABLE IF NOT EXISTS positions (
     id BIGSERIAL NOT NULL,
@@ -52,13 +51,13 @@ CREATE TABLE IF NOT EXISTS positions (
     x DOUBLE PRECISION,
     y DOUBLE PRECISION,
     z DOUBLE PRECISION,
-    method TEXT,                 -- 'single_anchor' | 'proximity' | ...
+    method TEXT,
     q_score DOUBLE PRECISION,
     zone TEXT,
-    nearest_anchor_id TEXT,      -- bei single_anchor (und auch sonst: nächster Anchor)
-    dist_m DOUBLE PRECISION,     -- Radius (bei single_anchor) oder Distanz zum nächsten Anchor
-    num_anchors INT,             -- wie viele Anchors sind in dists enthalten
-    dists JSONB,                 -- {"A-01": 3.2, "A-02": 5.8, ...}
+    nearest_anchor_id TEXT,
+    dist_m DOUBLE PRECISION,
+    num_anchors INT,
+    dists JSONB,
     PRIMARY KEY (id, ts)
 );
 SELECT create_hypertable('positions', 'ts', if_not_exists => TRUE);

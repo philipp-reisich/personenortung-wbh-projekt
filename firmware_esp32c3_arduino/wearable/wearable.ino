@@ -33,7 +33,7 @@ uint32_t advSeq = 1;
 static float readBoardTempC() {
 #if defined(ARDUINO_ARCH_ESP32)
   #ifdef temperatureRead
-    return temperatureRead(); // ggf. unkalibriert; ok für Trend
+    return temperatureRead();
   #else
     return NAN;
   #endif

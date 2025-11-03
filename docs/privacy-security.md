@@ -4,7 +4,7 @@ Dieser Abschnitt erläutert, wie der RTLS‑Prototyp die Anforderungen an Datens
 
 ## Rechtliche Grundlagen
 
-Geolokalisierungsdaten sind personenbezogene Daten. Sie können sensible Informationen über Arbeitszeiten, Bewegungsprofile oder Gesundheitszustand offenlegen und unterliegen daher strengen Vorgaben. Die 22Academy betont, dass eine Verarbeitung nur mit gültiger Rechtsgrundlage (z.B. Einwilligung oder berechtigtes Interesse) zulässig ist und dass Datenminimierung sowie Transparenz gewährleistet werden müssen【200088409187489†L69-L140】. Die EDPB führt aus, dass Pseudonymisierung das Risiko reduziert, aber pseudonymisierte Daten weiterhin personenbezogen bleiben und zusätzliche Schutzmaßnahmen erforderlich sind【839086812867505†L11-L33】.
+Geolokalisierungsdaten sind personenbezogene Daten. Sie können sensible Informationen über Arbeitszeiten, Bewegungsprofile oder Gesundheitszustand offenlegen und unterliegen daher strengen Vorgaben. Die 22Academy betont, dass eine Verarbeitung nur mit gültiger Rechtsgrundlage (z.B. Einwilligung oder berechtigtes Interesse) zulässig ist und dass Datenminimierung sowie Transparenz gewährleistet werden müssen. Die EDPB führt aus, dass Pseudonymisierung das Risiko reduziert, aber pseudonymisierte Daten weiterhin personenbezogen bleiben und zusätzliche Schutzmaßnahmen erforderlich sind.
 
 ## Maßnahmen im Prototyp
 
@@ -32,12 +32,3 @@ Alle sicherheitsrelevanten Aktionen (z.B. Benutzeranlage, Rollenänderungen, Ala
 ### Einwilligung und Information
 
 Vor dem Einsatz des Systems muss eine Datenschutz‑Folgenabschätzung durchgeführt werden. Mitarbeiter sind transparent über Zweck, Umfang und Dauer der Ortung zu informieren und müssen ggf. ihre Einwilligung erteilen oder der Verarbeitung widersprechen können. Die Datenverarbeitung ist regelmässig zu überprüfen und anzupassen.
-
-## Weitere Empfehlungen
-
-* **Data Protection by Design:** Schon bei der Entwicklung wurden Datenschutz‑Prinzipien berücksichtigt (Pseudonymisierung, minimal required data, modulare Zugriffskontrolle).
-* **Penetration Tests:** Vor der Produktivsetzung sollten Sicherheits‑ und Penetrationstests durchgeführt werden.
-* **Notfallkonzept:** Für den Fall eines Datenlecks muss ein Incident‑Response‑Plan existieren. Betroffene sind unverzüglich zu benachrichtigen.
-* **Externe Integrationen:** Beim Anschluss externer Dienste (z.B. SMS/E‑Mail‑Benachrichtigung) ist sicherzustellen, dass diese ebenfalls DSGVO‑konform arbeiten.
-
-Mit diesen Maßnahmen soll das Risiko für die betroffenen Personen minimiert und ein sicherer Betrieb des RTLS im Bahnumfeld gewährleistet werden.

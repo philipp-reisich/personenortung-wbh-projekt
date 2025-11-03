@@ -1,4 +1,5 @@
--- Demodaten für Anchors & Wearables (idempotent)
+-- db/seed.sql
+-- Seed data for the BLE RTLS prototype
 
 -- Anchors
 INSERT INTO anchors (id, name, x, y, z)

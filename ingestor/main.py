@@ -244,7 +244,6 @@ async def flush_events(batch: List[RtlsEvent], pool: asyncpg.Pool, kid: KnownIds
         except Exception as e:
             logger.warning("Skipping event with bad ts: %s (payload=%s)", e, msg.dict())
             continue
-        # Event ohne bekannte UID überspringen
         if msg.uid not in kid.wearables:
             skipped += 1
             continue

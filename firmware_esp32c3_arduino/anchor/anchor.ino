@@ -115,7 +115,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
 
     uint64_t ts = nowEpochMs();
 
-    // Publish Scan (auch wenn battery/temp fehlen)
+    // Publish Scan
     String payload = "{";
     payload += "\"ts\":" + String(ts) + ",";
     payload += "\"anchor_id\":\"" + String(ANCHOR_ID) + "\",";
@@ -180,7 +180,6 @@ void setup() {
   NimBLEScan* scan = NimBLEDevice::getScan();
   scan->setScanCallbacks(new ScanCallbacks());
 
-  // >>> Zuverlässig scannen:
   scan->setActiveScan(true);         // Name/MD sicher sehen
   scan->setDuplicateFilter(false);   // wir deduplizieren per adv_seq
   // 100% Duty: 100 ms Window = 100 ms Interval

@@ -14,7 +14,7 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 WINDOW_SECONDS       = int(os.getenv("WINDOW_SECONDS", "7"))
 POLL_INTERVAL        = float(os.getenv("POLL_INTERVAL", "1.5"))
 WRITE_THROTTLE_S     = float(os.getenv("WRITE_THROTTLE_S", "5.0"))
-QUERY_WINDOW_FACTOR  = float(os.getenv("QUERY_WINDOW_FACTOR", "2.0"))  # wir laden etwas mehr als WINDOW
+QUERY_WINDOW_FACTOR  = float(os.getenv("QUERY_WINDOW_FACTOR", "2.0"))
 TX_POWER_DBM_AT_1M   = float(os.getenv("TX_POWER_DBM_AT_1M", "-59"))
 PATH_LOSS_EXPONENT   = float(os.getenv("PATH_LOSS_EXPONENT", "2.2"))
 WEIGHT_DIST_CLAMP_M  = float(os.getenv("WEIGHT_DIST_CLAMP_M", "0.5"))
@@ -30,7 +30,6 @@ async def fetch_anchors(conn) -> Dict[str, Tuple[float, float, float]]:
     return {r["id"]: (float(r["x"]), float(r["y"]), float(r["z"])) for r in rows}
 
 async def fetch_recent_scans(conn, seconds: int) -> List[asyncpg.Record]:
-    # wir laden bewusst etwas mehr, um UID-ausgerichtet schneiden zu können
     q = """
     SELECT ts, anchor_id, uid, rssi
       FROM scans
@@ -63,7 +62,6 @@ async def compute_and_store_positions(pool) -> None:
                 if not scans:
                     await asyncio.sleep(POLL_INTERVAL); continue
 
-                # nach UID gruppieren
                 by_uid: Dict[str, List[asyncpg.Record]] = {}
                 for r in scans:
                     by_uid.setdefault(r["uid"], []).append(r)
@@ -74,14 +72,11 @@ async def compute_and_store_positions(pool) -> None:
                     if should_throttle(uid):
                         continue
 
-                    # jüngster Scan dieser UID
                     uid_latest_ts = max(r["ts"] for r in records)
                     uid_window_start = uid_latest_ts - await conn.fetchval("SELECT make_interval(secs => $1)", WINDOW_SECONDS)
 
-                    # nur Scans im UID-ausgerichteten Fenster
                     filtered = [r for r in records if r["ts"] >= uid_window_start]
 
-                    # pro Anchor aggregieren (best RSSI & jüngster TS)
                     per_anchor = {}
                     for rec in filtered:
                         aid = rec["anchor_id"]
@@ -100,7 +95,6 @@ async def compute_and_store_positions(pool) -> None:
                     if not per_anchor:
                         continue
 
-                    # Distanzen + Altersinfo (für Debug)
                     now_db = await conn.fetchval("SELECT now()")
                     dists = {}
                     ages_s = {}
@@ -113,7 +107,6 @@ async def compute_and_store_positions(pool) -> None:
                     nearest_anchor_id = max(per_anchor.items(), key=lambda kv: kv[1]["best_rssi"])[0]
                     nearest_dist = dists[nearest_anchor_id]
 
-                    # Position bestimmen
                     if num_anchors >= 2:
                         top = sorted(per_anchor.items(), key=lambda kv: kv[1]["best_rssi"], reverse=True)[:TOP_K]
                         wsumx = wsumy = wtot = 0.0
@@ -138,7 +131,6 @@ async def compute_and_store_positions(pool) -> None:
                                      uid, num_anchors, WINDOW_SECONDS, uid_latest_ts, nearest_anchor_id, nearest_dist,
                                      {k: round(v,2) for k,v in ages_s.items()})
 
-                    # einfache Qualitätsmetrik
                     rssi_vals = [s["best_rssi"] for s in per_anchor.values()]
                     spread = max(rssi_vals) - min(rssi_vals) if len(rssi_vals) > 1 else 0.0
                     anchor_factor = min(1.0, (num_anchors - 1) / max(1, TOP_K - 1)) if num_anchors > 1 else 0.0

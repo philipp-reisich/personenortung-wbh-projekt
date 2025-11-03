@@ -8,7 +8,6 @@ services:
     volumes:
       - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - ./logs:/mosquitto/log
-      # - ./mosquitto/data:/mosquitto/data
     ports:
       - "1883:1883"
       - "9001:9001"
@@ -36,7 +35,7 @@ services:
       retries: 10
     networks: [rtls_net]
 
-  # optionales einmaliges Schema-Rollout via psql (idempotent)
+  # optional one-time schema rollout via psql (idempotent)
   # db-init:
   #   image: timescale/timescaledb-ha:pg17
   #   depends_on:
@@ -85,9 +84,9 @@ services:
       # - INGEST_USE_MESSAGE_TS=false
       # - INGEST_AUTO_CREATE_ANCHORS=true
       # - INGEST_AUTO_CREATE_WEARABLES=true
-      # Größere Batches = effizientere DB-Writes
+      # bigger batches = more efficient db writes
       - BATCH_MAX_SIZE=1000
-      # Schneller flushen für Live-Daten
+      # faster batch flush for live data
       - BATCH_MAX_AGE_S=2.5
       # IDs-Cache häufiger refreshen
       - IDS_REFRESH_S=30
@@ -105,20 +104,19 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - LOG_LEVEL=DEBUG
       - PYTHONUNBUFFERED=1
-      # === LIVE-OPTIMIERUNGEN ===
-      # WICHTIG: Kleines Fenster = schnelle Reaktion auf Ausfall!
+      # important: small window = fast reaction to failures!
       - WINDOW_SECONDS=7
-      # Schnelle Poll-Rate für Live-Updates
+      # faster polling for live updates
       - POLL_INTERVAL=1.5
-      # Minimum Anchors für Berechnung (Genauigkeit)
+      # minimum required anchors for calculation (accuracy)
       - MIN_ANCHORS=1
-      # Top-K Anchors für Gewichtung
+      # top-k anchors used for position calculation
       - TOP_K=3
-      # EMA-Glättung (0.2 = moderate Glättung für Live-Daten)
+      # EMA smoothing (0.2 = moderate smoothing for live data)
       - EMA_ALPHA=0.2
-      # TX-Power Referenz
+      # TX-Power reference
       - TX_POWER_DBM_AT_1M=-80
-      # Path-Loss-Exponent (Indoor)
+      # Path-Loss-Exponent
       - PATH_LOSS_EXPONENT=2.2
       - THROTTLE_S=5.0
     depends_on:

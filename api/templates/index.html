@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RTLS Dashboard</title>
+  <title>BLE-Tracking Dashboard</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -16,6 +16,8 @@
       padding: 0;
       box-sizing: border-box;
     }
+
+    :root { --anim: running; }
 
     html, body {
       height: 100%;
@@ -70,6 +72,7 @@
       border-radius: 50%;
       background: #4caf50;
       animation: pulse 2s ease-in-out infinite;
+      animation-play-state: var(--anim, running);
     }
 
     @keyframes pulse {
@@ -179,17 +182,9 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .stat-card.green {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-
-    .stat-card.orange {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    .stat-card.blue {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
+    .stat-card.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .stat-card.orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stat-card.blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
 
     .stat-label {
       font-size: 0.8rem;
@@ -199,10 +194,7 @@
       letter-spacing: 0.5px;
     }
 
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-    }
+    .stat-value { font-size: 2rem; font-weight: 700; }
 
     .section-title {
       font-size: 1rem;
@@ -214,11 +206,7 @@
       gap: 0.5rem;
     }
 
-    .item-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
+    .item-list { display: flex; flex-direction: column; gap: 0.75rem; }
 
     .item-card {
       background: #f8f9fa;
@@ -236,71 +224,20 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .item-card.emergency {
-      border-left: 4px solid #f44336;
-      background: #ffebee;
-    }
+    .item-card.emergency { border-left: 4px solid #f44336; background: #ffebee; }
 
-    .item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
+    .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .item-id { font-weight: 600; color: #1a237e; font-size: 0.95rem; font-family: 'Courier New', monospace; }
 
-    .item-id {
-      font-weight: 600;
-      color: #1a237e;
-      font-size: 0.95rem;
-      font-family: 'Courier New', monospace;
-    }
+    .item-badge { background: #1a237e; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+    .item-badge.online { background: #4caf50; }
+    .item-badge.offline { background: #9e9e9e; }
 
-    .item-badge {
-      background: #1a237e;
-      color: white;
-      padding: 0.25rem 0.75rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
+    .item-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.85rem; color: #666; }
 
-    .item-badge.online {
-      background: #4caf50;
-    }
-
-    .item-badge.warning {
-      background: #ff9800;
-    }
-
-    .item-badge.offline {
-      background: #9e9e9e;
-    }
-
-    .item-details {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
-      font-size: 0.85rem;
-      color: #666;
-    }
-
-    .item-detail {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .detail-label {
-      font-size: 0.75rem;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .detail-value {
-      font-weight: 600;
-      color: #333;
-      font-family: 'Courier New', monospace;
-    }
+    .item-detail { display: flex; flex-direction: column; }
+    .detail-label { font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
+    .detail-value { font-weight: 600; color: #333; font-family: 'Courier New', monospace; }
 
     .emergency-banner {
       background: #f44336;
@@ -309,135 +246,57 @@
       text-align: center;
       font-weight: 600;
       animation: blink 1s ease-in-out infinite;
+      animation-play-state: var(--anim, running);
       margin-bottom: 1rem;
     }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
-    .no-data {
-      text-align: center;
-      padding: 2rem;
-      color: #999;
-      font-style: italic;
-    }
+    .no-data { text-align: center; padding: 2rem; color: #999; font-style: italic; }
 
-    .custom-marker {
-      display: inline-block;
-    }
+    .custom-marker { display: inline-block; }
 
     .anchor-marker {
-      background: #1a237e;
-      color: white;
-      border: 3px solid white;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 0.65rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      font-family: 'Courier New', monospace;
-      overflow: hidden;
-      word-break: break-all;
-      text-align: center;
-      line-height: 1.2;
-      padding: 2px;
+      background: #1a237e; color: white; border: 3px solid white; border-radius: 50%; width: 45px; height: 45px;
+      display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.65rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      font-family: 'Courier New', monospace; overflow: hidden; word-break: break-all; text-align: center; line-height: 1.2; padding: 2px;
     }
 
     .wearable-marker {
-      background: #4caf50;
-      color: white;
-      border: 3px solid white;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 0.6rem;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      font-family: 'Courier New', monospace;
-      overflow: hidden;
-      word-break: break-all;
-      text-align: center;
-      line-height: 1.2;
-      padding: 2px;
+      background: #4caf50; color: white; border: 3px solid white; border-radius: 50%; width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.6rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      font-family: 'Courier New', monospace; overflow: hidden; word-break: break-all; text-align: center; line-height: 1.2; padding: 2px;
     }
 
-    .wearable-marker.emergency {
-      background: #f44336;
-      animation: emergencyPulse 1s ease-in-out infinite;
-    }
-
-    .wearable-marker.single-anchor {
-      background: #ff9800;
-    }
+    .wearable-marker.emergency { background: #f44336; animation: emergencyPulse 1s ease-in-out infinite; }
+    .wearable-marker.single-anchor { background: #ff9800; }
 
     @keyframes emergencyPulse {
-      0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
-      }
-      50% {
-        transform: scale(1.2);
-        box-shadow: 0 6px 12px rgba(244, 67, 54, 0.6);
-      }
+      0%, 100% { transform: scale(1); box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3); }
+      50% { transform: scale(1.2); box-shadow: 0 6px 12px rgba(244, 67, 54, 0.6); }
     }
 
-    .leaflet-popup-content-wrapper {
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    .distance-label {
+      background: rgba(255, 152, 0, 0.9); color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; white-space: nowrap; pointer-events: none; font-family: 'Courier New', monospace;
     }
 
-    .popup-content {
-      font-size: 0.85rem;
-      font-family: 'Courier New', monospace;
-    }
+    .leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
 
-    .popup-title {
-      font-weight: 600;
-      font-size: 1rem;
-      color: #1a237e;
-      margin-bottom: 0.5rem;
-    }
+    .popup-content { font-size: 0.85rem; font-family: 'Courier New', monospace; }
+    .popup-title { font-weight: 600; font-size: 1rem; color: #1a237e; margin-bottom: 0.5rem; }
 
-    .popup-detail {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.25rem 0;
-      border-bottom: 1px solid #eee;
-      font-size: 0.8rem;
-    }
+    .popup-detail { display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px solid #eee; font-size: 0.8rem; }
+    .popup-detail:last-child { border-bottom: none; }
+    .popup-label { color: #666; font-weight: 500; }
+    .popup-value { color: #333; font-weight: 600; }
 
-    .popup-detail:last-child {
-      border-bottom: none;
-    }
-
-    .popup-label {
-      color: #666;
-      font-weight: 500;
-    }
-
-    .popup-value {
-      color: #333;
-      font-weight: 600;
-    }
-
-    .leaflet-control-zoom {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
+    .leaflet-control-zoom { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>🎯 RTLS Dashboard</h1>
+      <h1>🎯 BLE-Tracking Dashboard</h1>
       <div class="header-controls">
         <div class="status-indicator">
           <span class="status-dot"></span>
@@ -449,7 +308,7 @@
     <div class="content">
       <div class="map-container">
         <div id="map"></div>
-        <div class="map-info">
+        <!-- <div class="map-info">
           <div class="map-info-item">
             <span><strong>Feld:</strong> 10m × 25m</span>
           </div>
@@ -459,14 +318,14 @@
           <div class="map-info-item">
             <span id="mapCoords"><strong>Pos:</strong> -</span>
           </div>
-        </div>
+        </div> -->
       </div>
 
       <div class="sidebar">
         <div class="sidebar-tabs">
-          <button class="tab-btn active" onclick="switchTab('overview')">Übersicht</button>
-          <button class="tab-btn" onclick="switchTab('anchors')">Anchors</button>
-          <button class="tab-btn" onclick="switchTab('wearables')">Wearables</button>
+          <button class="tab-btn active" onclick="switchTab('overview', event)">Übersicht</button>
+          <button class="tab-btn" onclick="switchTab('anchors', event)">Anchors</button>
+          <button class="tab-btn" onclick="switchTab('wearables', event)">Wearables</button>
         </div>
 
         <div id="tab-overview" class="tab-content active">
@@ -520,126 +379,95 @@
           crossorigin=""></script>
 
   <script>
-    // Configuration
-    const FIELD_WIDTH = 10;  // meters
-    const FIELD_HEIGHT = 25; // meters
-    const GRID_SIZE = 1;     // meters per grid cell
-    const PIXEL_PER_METER = 30; // pixels per meter for Leaflet
+    // =====================
+    // Config & Globals
+    // =====================
+    const FIELD_WIDTH = 10;
+    const FIELD_HEIGHT = 25;
+    const GRID_SIZE = 1;
 
-    // Global State
+    const DEBUG = false;
+    const log = (...args) => { if (DEBUG) console.log(...args); };
+
     let map;
     let markers = {};
-    let circles = {};
+    let distanceLabels = {};
     let anchorsData = [];
     let wearablesData = [];
     let positionsData = [];
     let scansData = {};
     let anchorStatusData = {};
+    let stats = { active_devices: 0, total_anchors: 0, total_wearables: 0, total_positions: 0, emergency_count: 0 };
+
     let ws;
-    let gridLayer;
+    let retryDelay = 1000; // ms, exponential backoff
+    const RETRY_DELAY_MAX = 15000;
+
     let boundsRectangle;
 
-    // Initialize Map with Field Bounds
-    function initMap() {
-      // CRS.Simple uses [y, x] coordinates directly in pixels
-      // We need to map meters to pixels: (y_meters * PIXEL_PER_METER, x_meters * PIXEL_PER_METER)
+    // Batch-Rendering Flags & Queues
+    const pending = { anchors:false, wearables:false, positions:false, scans:false, stats:false };
+    const queue = { positions: new Map(), scans: new Map() };
 
+    // =====================
+    // Map
+    // =====================
+    function initMap() {
       map = L.map('map', {
         crs: L.CRS.Simple,
         minZoom: -2,
         maxZoom: 6,
         zoomControl: true,
         attributionControl: false,
-        zoom: 2
+        zoom: 2,
+        updateWhenIdle: true,
+        updateWhenZooming: false,
+        preferCanvas: false
       });
 
-      // Set initial view to center of field
-      // Center: (FIELD_HEIGHT/2, FIELD_WIDTH/2) in meters
       const centerY = FIELD_HEIGHT / 2;
       const centerX = FIELD_WIDTH / 2;
       map.setView([centerY, centerX], 2);
 
-      // Draw field boundary rectangle (10m x 25m)
-      // Bounds: (0, 0) to (25, 10) in meters = (0, 0) to (HEIGHT, WIDTH)
-      const bounds = L.latLngBounds(
-        L.latLng(0, 0),
-        L.latLng(FIELD_HEIGHT, FIELD_WIDTH)
-      );
+      const bounds = L.latLngBounds(L.latLng(0, 0), L.latLng(FIELD_HEIGHT, FIELD_WIDTH));
 
       boundsRectangle = L.rectangle(bounds, {
-        color: '#1a237e',
-        weight: 3,
-        fillColor: '#ffffff',
-        fillOpacity: 0.05,
-        dashArray: '5, 5'
+        color: '#1a237e', weight: 3, fillColor: '#ffffff', fillOpacity: 0.05, dashArray: '5, 5'
       }).addTo(map);
 
-      // Add grid
       drawGrid();
 
-      // Add mouse move listener to show coordinates
       map.on('mousemove', function(e) {
         const meters_y = e.latlng.lat.toFixed(1);
         const meters_x = e.latlng.lng.toFixed(1);
-        document.getElementById('mapCoords').innerHTML =
-          `<strong>Pos:</strong> x=${meters_x}m, y=${meters_y}m`;
+        document.getElementById('mapCoords').innerHTML = `<strong>Pos:</strong> x=${meters_x}m, y=${meters_y}m`;
       });
 
-      console.log('✓ Leaflet map initialized (10m × 25m field, 1m grid)');
+      log('✓ Leaflet map initialized');
     }
 
-    // Draw 1m Grid
     function drawGrid() {
-      const gridLines = [];
-
-      // Horizontal lines (Y axis)
       for (let y = 0; y <= FIELD_HEIGHT; y += GRID_SIZE) {
-        const line = L.polyline(
-          [[y, 0], [y, FIELD_WIDTH]],
-          {
-            color: '#e0e0e0',
-            weight: 1,
-            opacity: y % 5 === 0 ? 0.6 : 0.3
-          }
-        ).addTo(map);
-        gridLines.push(line);
+        L.polyline([[y, 0], [y, FIELD_WIDTH]], { color: '#e0e0e0', weight: 1, opacity: y % 5 === 0 ? 0.6 : 0.3 }).addTo(map);
       }
-
-      // Vertical lines (X axis)
       for (let x = 0; x <= FIELD_WIDTH; x += GRID_SIZE) {
-        const line = L.polyline(
-          [[0, x], [FIELD_HEIGHT, x]],
-          {
-            color: '#e0e0e0',
-            weight: 1,
-            opacity: x % 5 === 0 ? 0.6 : 0.3
-          }
-        ).addTo(map);
-        gridLines.push(line);
+        L.polyline([[0, x], [FIELD_HEIGHT, x]], { color: '#e0e0e0', weight: 1, opacity: x % 5 === 0 ? 0.6 : 0.3 }).addTo(map);
       }
-
-      console.log(`✓ Grid drawn: ${FIELD_HEIGHT / GRID_SIZE + 1} horizontal, ${FIELD_WIDTH / GRID_SIZE + 1} vertical lines`);
+      log('✓ Grid drawn');
     }
 
-    // Create custom icon for markers
     function createMarkerIcon(className, label) {
-      return L.divIcon({
-        className: 'custom-marker',
-        html: `<div class="${className}">${label}</div>`,
-        iconSize: [45, 45],
-        iconAnchor: [22.5, 22.5]
-      });
+      return L.divIcon({ className: 'custom-marker', html: `<div class="${className}">${label}</div>`, iconSize: [45, 45], iconAnchor: [22.5, 22.5] });
     }
 
-    // Add or update anchor marker
     function updateAnchorMarker(anchor) {
+      if (!anchor) return;
       const key = `anchor-${anchor.id}`;
-      const position = [anchor.y, anchor.x]; // [meters_y, meters_x]
+      const position = [anchor.y, anchor.x];
 
       if (markers[key]) {
         markers[key].setLatLng(position);
       } else {
-        // Use full anchor ID, not truncated
         const icon = createMarkerIcon('anchor-marker', anchor.id);
         const marker = L.marker(position, { icon }).addTo(map);
 
@@ -647,67 +475,47 @@
         const popupContent = `
           <div class="popup-content">
             <div class="popup-title">${anchor.id}</div>
-            <div class="popup-detail">
-              <span class="popup-label">Name:</span>
-              <span class="popup-value">${anchor.name || 'N/A'}</span>
-            </div>
-            <div class="popup-detail">
-              <span class="popup-label">Pos:</span>
-              <span class="popup-value">(x=${anchor.x.toFixed(1)}m, y=${anchor.y.toFixed(1)}m)</span>
-            </div>
-            ${status.ip ? `<div class="popup-detail">
-              <span class="popup-label">IP:</span>
-              <span class="popup-value">${status.ip}</span>
-            </div>` : ''}
-            ${status.wifi_rssi !== null ? `<div class="popup-detail">
-              <span class="popup-label">WiFi:</span>
-              <span class="popup-value">${status.wifi_rssi} dBm</span>
-            </div>` : ''}
-          </div>
-        `;
+            <div class="popup-detail"><span class="popup-label">Name:</span><span class="popup-value">${anchor.name || 'N/A'}</span></div>
+            <div class="popup-detail"><span class="popup-label">Pos:</span><span class="popup-value">(x=${anchor.x.toFixed(1)}m, y=${anchor.y.toFixed(1)}m)</span></div>
+            ${status.ip ? `<div class="popup-detail"><span class="popup-label">IP:</span><span class="popup-value">${status.ip}</span></div>` : ''}
+            ${status.wifi_rssi !== null && status.wifi_rssi !== undefined ? `<div class="popup-detail"><span class="popup-label">WiFi:</span><span class="popup-value">${status.wifi_rssi} dBm</span></div>` : ''}
+          </div>`;
         marker.bindPopup(popupContent);
         markers[key] = marker;
-        console.log(`✓ Anchor marker: ${anchor.id} at (x=${anchor.x}, y=${anchor.y})`);
+      }
+
+      const m = markers[key];
+      if (m && m.isPopupOpen && m.isPopupOpen()) {
+        const status = anchorStatusData[anchor.id] || {};
+        const popupContent = `
+          <div class="popup-content">
+            <div class="popup-title">${anchor.id}</div>
+            <div class="popup-detail"><span class="popup-label">Name:</span><span class="popup-value">${anchor.name || 'N/A'}</span></div>
+            <div class="popup-detail"><span class="popup-label">Pos:</span><span class="popup-value">(x=${anchor.x.toFixed(1)}m, y=${anchor.y.toFixed(1)}m)</span></div>
+            ${status.ip ? `<div class="popup-detail"><span class="popup-label">IP:</span><span class="popup-value">${status.ip}</span></div>` : ''}
+            ${status.wifi_rssi !== null && status.wifi_rssi !== undefined ? `<div class="popup-detail"><span class="popup-label">WiFi:</span><span class="popup-value">${status.wifi_rssi} dBm</span></div>` : ''}
+          </div>`;
+        m.setPopupContent(popupContent);
       }
     }
 
-    // Add or update wearable marker
     function updateWearableMarker(position) {
       const key = `wearable-${position.uid}`;
       const scan = scansData[position.uid] || {};
 
       let latLng, markerClass = 'wearable-marker';
+      let isSingleAnchor = false;
 
       if (position.x !== null && position.x !== 0 && position.y !== null && position.y !== 0) {
-        // Multi-anchor positioning
         latLng = [position.y, position.x];
-      } else if (position.nearest_anchor_id && position.dist_m !== null) {
-        // Single-anchor positioning
+      } else if (position.nearest_anchor_id && position.dist_m !== null && position.dist_m !== undefined) {
         const anchor = anchorsData.find(a => a.id === position.nearest_anchor_id);
         if (anchor) {
-          const angle = Math.random() * 2 * Math.PI;
-          const offsetDist = Math.min(position.dist_m * 0.3, 2);
-          latLng = [
-            anchor.y + offsetDist * Math.sin(angle),
-            anchor.x + offsetDist * Math.cos(angle)
-          ];
+          isSingleAnchor = true;
+          const offsetX = 2.0;
+          latLng = [anchor.y, anchor.x + offsetX];
           markerClass = 'wearable-marker single-anchor';
-
-          // Draw distance circle
-          const circleKey = `circle-${position.uid}`;
-          if (circles[circleKey]) {
-            circles[circleKey].setLatLng([anchor.y, anchor.x]);
-            circles[circleKey].setRadius(position.dist_m);
-          } else {
-            circles[circleKey] = L.circle([anchor.y, anchor.x], {
-              radius: position.dist_m,
-              color: '#ff9800',
-              fillColor: '#ff9800',
-              fillOpacity: 0.1,
-              weight: 2,
-              dashArray: '5, 5'
-            }).addTo(map);
-          }
+          addDistanceLabel(position.uid, anchor, position.dist_m);
         } else {
           return;
         }
@@ -715,206 +523,79 @@
         return;
       }
 
-      if (scan.last_emergency) {
-        markerClass = 'wearable-marker emergency';
-      }
+      if (scan.last_emergency) markerClass = 'wearable-marker emergency';
 
       if (markers[key]) {
         markers[key].setLatLng(latLng);
       } else {
-        // Use full wearable ID, not truncated
         const icon = createMarkerIcon(markerClass, position.uid);
         const marker = L.marker(latLng, { icon }).addTo(map);
-
         const wearable = wearablesData.find(w => w.uid === position.uid) || {};
-        const popupContent = buildWearablePopup(position, wearable, scan);
+        const popupContent = buildWearablePopup(position, wearable, scan, isSingleAnchor);
         marker.bindPopup(popupContent);
         markers[key] = marker;
-        console.log(`✓ Wearable marker: ${position.uid} at (x=${position.x}, y=${position.y})`);
       }
 
-      if (markers[key]) {
+      const m = markers[key];
+      if (m && m.isPopupOpen && m.isPopupOpen()) {
         const wearable = wearablesData.find(w => w.uid === position.uid) || {};
-        const popupContent = buildWearablePopup(position, wearable, scan);
-        markers[key].setPopupContent(popupContent);
+        const popupContent = buildWearablePopup(position, wearable, scan, isSingleAnchor);
+        m.setPopupContent(popupContent);
       }
     }
 
-    function buildWearablePopup(position, wearable, scan) {
+    function addDistanceLabel(uid, anchor, distance) {
+      const labelKey = `label-${uid}`;
+      if (distanceLabels[labelKey]) distanceLabels[labelKey].remove();
+
+      const offsetX = 2.5;
+      const offsetY = 0.5;
+      const labelLatLng = L.latLng(anchor.y + offsetY, anchor.x + offsetX);
+
+      const html = `<div class="distance-label" style="transform: translate(-50%, -50%);">${Number(distance).toFixed(1)}m</div>`;
+
+      const icon = L.divIcon({ className: 'custom-marker', html, iconSize: [50, 20], iconAnchor: [25, 10] });
+      const label = L.marker(labelLatLng, { icon, interactive: false }).addTo(map);
+      distanceLabels[labelKey] = label;
+    }
+
+    function buildWearablePopup(position, wearable, scan, isSingleAnchor) {
+      let positionStr = '';
+      if (position.x && position.y) {
+        positionStr = `(x=${position.x.toFixed(1)}m, y=${position.y.toFixed(1)}m)`;
+      } else if (isSingleAnchor) {
+        positionStr = `neben ${position.nearest_anchor_id} (${Number(position.dist_m).toFixed(1)}m)`;
+      }
+
       return `
         <div class="popup-content">
           <div class="popup-title">${position.uid}</div>
-          ${wearable.person_ref ? `<div class="popup-detail">
-            <span class="popup-label">Person:</span>
-            <span class="popup-value">${wearable.person_ref}</span>
-          </div>` : ''}
-          ${position.x ? `<div class="popup-detail">
-            <span class="popup-label">Pos:</span>
-            <span class="popup-value">(x=${position.x.toFixed(1)}m, y=${position.y.toFixed(1)}m)</span>
-          </div>` : ''}
-          ${position.nearest_anchor_id ? `<div class="popup-detail">
-            <span class="popup-label">Anchor:</span>
-            <span class="popup-value">${position.nearest_anchor_id}</span>
-          </div>` : ''}
-          ${position.dist_m !== null ? `<div class="popup-detail">
-            <span class="popup-label">Dist:</span>
-            <span class="popup-value">${position.dist_m.toFixed(1)}m</span>
-          </div>` : ''}
-          ${scan.last_battery ? `<div class="popup-detail">
-            <span class="popup-label">Batt:</span>
-            <span class="popup-value">${scan.last_battery.toFixed(2)}V</span>
-          </div>` : ''}
-          ${scan.last_temp_c ? `<div class="popup-detail">
-            <span class="popup-label">Temp:</span>
-            <span class="popup-value">${scan.last_temp_c.toFixed(1)}°C</span>
-          </div>` : ''}
-        </div>
-      `;
+          ${wearable.person_ref ? `<div class="popup-detail"><span class="popup-label">Person:</span><span class="popup-value">${wearable.person_ref}</span></div>` : ''}
+          ${positionStr ? `<div class="popup-detail"><span class="popup-label">Pos:</span><span class="popup-value">${positionStr}</span></div>` : ''}
+          ${scan.last_battery ? `<div class="popup-detail"><span class="popup-label">Batterie:</span><span class="popup-value">${Number(scan.last_battery).toFixed(2)}V</span></div>` : ''}
+          ${scan.last_temp_c ? `<div class="popup-detail"><span class="popup-label">Temp:</span><span class="popup-value">${Number(scan.last_temp_c).toFixed(1)}°C</span></div>` : ''}
+        </div>`;
     }
 
-    // Fit map to field bounds
     function fitMapToField() {
-      const bounds = L.latLngBounds(
-        L.latLng(0, 0),
-        L.latLng(FIELD_HEIGHT, FIELD_WIDTH)
-      );
+      const bounds = L.latLngBounds(L.latLng(0, 0), L.latLng(FIELD_HEIGHT, FIELD_WIDTH));
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 2 });
     }
 
-    // Tab switching
-    function switchTab(tabName) {
+    // =====================
+    // Tabs
+    // =====================
+    function switchTab(tabName, ev) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-      event.target.classList.add('active');
+      if (ev && ev.target) ev.target.classList.add('active');
       document.getElementById(`tab-${tabName}`).classList.add('active');
     }
 
-    // Fetch operations
-    async function fetchAnchors() {
-      try {
-        const response = await fetch('/anchors');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        anchorsData = await response.json();
-        console.log(`📌 Loaded ${anchorsData.length} anchors`);
-
-        anchorsData.forEach(anchor => updateAnchorMarker(anchor));
-        fitMapToField();
-        updateAnchorList();
-        return true;
-      } catch (error) {
-        console.error('❌ Error fetching anchors:', error);
-        return false;
-      }
-    }
-
-    async function fetchWearables() {
-      try {
-        const response = await fetch('/wearables');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        wearablesData = await response.json();
-        console.log(`📱 Loaded ${wearablesData.length} wearables`);
-        updateWearableList();
-        return true;
-      } catch (error) {
-        console.error('❌ Error fetching wearables:', error);
-        return false;
-      }
-    }
-
-    async function fetchPositions() {
-      try {
-        const response = await fetch('/positions/latest');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-
-        if (data && data.detail) {
-          console.warn('⚠ Positions API returned error:', data.detail);
-          positionsData = [];
-        } else if (Array.isArray(data)) {
-          positionsData = data;
-        } else {
-          positionsData = [];
-        }
-
-        console.log(`📍 Loaded ${positionsData.length} positions`);
-
-        positionsData.forEach(pos => updateWearableMarker(pos));
-        updateRecentPositions();
-        return true;
-      } catch (error) {
-        console.error('❌ Error fetching positions:', error);
-        positionsData = [];
-        return false;
-      }
-    }
-
-    async function fetchScans() {
-      try {
-        const response = await fetch('/scans/latest');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const scansArray = await response.json();
-
-        if (Array.isArray(scansArray)) {
-          scansData = {};
-          scansArray.forEach(scan => {
-            scansData[scan.uid] = scan;
-          });
-        }
-        console.log(`📡 Loaded scan data for ${Object.keys(scansData).length} wearables`);
-        return true;
-      } catch (error) {
-        console.error('❌ Error fetching scans:', error);
-        return false;
-      }
-    }
-
-    async function fetchAnchorStatus() {
-      try {
-        const response = await fetch('/anchor_status/latest');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const statusArray = await response.json();
-
-        if (Array.isArray(statusArray)) {
-          anchorStatusData = {};
-          statusArray.forEach(status => {
-            anchorStatusData[status.anchor_id] = status;
-          });
-        }
-        console.log(`📡 Loaded status for ${Object.keys(anchorStatusData).length} anchors`);
-        return true;
-      } catch (error) {
-        console.error('❌ Error fetching anchor status:', error);
-        return false;
-      }
-    }
-
-    async function fetchStats() {
-      try {
-        const response = await fetch('/stats');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const stats = await response.json();
-
-        document.getElementById('stat-active').textContent = stats.active_devices || 0;
-        document.getElementById('stat-anchors').textContent = stats.total_anchors || 0;
-        document.getElementById('stat-wearables').textContent = stats.total_wearables || 0;
-        document.getElementById('stat-positions').textContent = stats.total_positions || 0;
-
-        if (stats.emergency_count > 0) {
-          document.getElementById('emergency-container').innerHTML = `
-            <div class="emergency-banner">
-              ⚠️ ${stats.emergency_count} NOTFALL-ALARM(E) AKTIV!
-            </div>
-          `;
-        } else {
-          document.getElementById('emergency-container').innerHTML = '';
-        }
-      } catch (error) {
-        console.error('❌ Error fetching stats:', error);
-      }
-    }
-
-    // Update sidebar lists
+    // =====================
+    // Lists (batched)
+    // =====================
     function updateAnchorList() {
       const container = document.getElementById('anchor-list');
       if (!anchorsData || anchorsData.length === 0) {
@@ -925,7 +606,6 @@
       container.innerHTML = anchorsData.map(anchor => {
         const status = anchorStatusData[anchor.id] || {};
         const online = status.ble_scan_active ? 'online' : 'offline';
-
         return `
           <div class="item-card" onclick="focusOnMarker('anchor-${anchor.id}')">
             <div class="item-header">
@@ -933,25 +613,12 @@
               <span class="item-badge ${online}">${online === 'online' ? '🟢' : '⚫'}</span>
             </div>
             <div class="item-details">
-              <div class="item-detail">
-                <span class="detail-label">Name</span>
-                <span class="detail-value">${anchor.name || '-'}</span>
-              </div>
-              <div class="item-detail">
-                <span class="detail-label">Pos (m)</span>
-                <span class="detail-value">x=${anchor.x.toFixed(1)}, y=${anchor.y.toFixed(1)}</span>
-              </div>
-              ${status.ip ? `<div class="item-detail">
-                <span class="detail-label">IP</span>
-                <span class="detail-value">${status.ip}</span>
-              </div>` : ''}
-              ${status.wifi_rssi !== null ? `<div class="item-detail">
-                <span class="detail-label">WiFi</span>
-                <span class="detail-value">${status.wifi_rssi}dBm</span>
-              </div>` : ''}
+              <div class="item-detail"><span class="detail-label">Name</span><span class="detail-value">${anchor.name || '-'}</span></div>
+              <div class="item-detail"><span class="detail-label">Pos (m)</span><span class="detail-value">x=${anchor.x.toFixed(1)}, y=${anchor.y.toFixed(1)}</span></div>
+              ${status.ip ? `<div class="item-detail"><span class="detail-label">IP</span><span class="detail-value">${status.ip}</span></div>` : ''}
+              ${status.wifi_rssi !== null && status.wifi_rssi !== undefined ? `<div class="item-detail"><span class="detail-label">WiFi</span><span class="detail-value">${status.wifi_rssi}dBm</span></div>` : ''}
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
@@ -965,7 +632,7 @@
       container.innerHTML = wearablesData.map(wearable => {
         const scan = scansData[wearable.uid] || {};
         const position = positionsData.find(p => p.uid === wearable.uid);
-        const isEmergency = scan.last_emergency;
+        const isEmergency = !!scan.last_emergency;
         const lastSeen = scan.last_seen ? new Date(scan.last_seen) : null;
         const timeDiff = lastSeen ? (Date.now() - lastSeen.getTime()) / 1000 : null;
         const status = timeDiff && timeDiff < 60 ? 'online' : 'offline';
@@ -977,28 +644,13 @@
               <span class="item-badge ${status}">${status === 'online' ? '🟢' : '⚫'}</span>
             </div>
             <div class="item-details">
-              ${wearable.person_ref ? `<div class="item-detail">
-                <span class="detail-label">Person</span>
-                <span class="detail-value">${wearable.person_ref}</span>
-              </div>` : ''}
-              ${position && position.nearest_anchor_id ? `<div class="item-detail">
-                <span class="detail-label">Anchor</span>
-                <span class="detail-value">${position.nearest_anchor_id}</span>
-              </div>` : ''}
-              ${position && position.dist_m !== null ? `<div class="item-detail">
-                <span class="detail-label">Dist</span>
-                <span class="detail-value">${position.dist_m.toFixed(1)}m</span>
-              </div>` : ''}
-              ${scan.last_battery ? `<div class="item-detail">
-                <span class="detail-label">Batt</span>
-                <span class="detail-value">${scan.last_battery.toFixed(2)}V</span>
-              </div>` : ''}
-              ${isEmergency ? `<div class="item-detail" style="grid-column: 1 / -1; color: #f44336; font-weight: 700;">
-                ⚠️ NOTFALL!
-              </div>` : ''}
+              ${wearable.person_ref ? `<div class="item-detail"><span class="detail-label">Person</span><span class="detail-value">${wearable.person_ref}</span></div>` : ''}
+              ${position && position.nearest_anchor_id ? `<div class="item-detail"><span class="detail-label">Anchor</span><span class="detail-value">${position.nearest_anchor_id}</span></div>` : ''}
+              ${position && position.dist_m !== null && position.dist_m !== undefined ? `<div class="item-detail"><span class="detail-label">Dist</span><span class="detail-value">${Number(position.dist_m).toFixed(1)}m</span></div>` : ''}
+              ${scan.last_battery ? `<div class="item-detail"><span class="detail-label">Batt</span><span class="detail-value">${Number(scan.last_battery).toFixed(2)}V</span></div>` : ''}
+              ${isEmergency ? `<div class="item-detail" style="grid-column: 1 / -1; color: #f44336; font-weight: 700;">⚠️ NOTFALL!</div>` : ''}
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
@@ -1009,14 +661,14 @@
         return;
       }
 
-      const sorted = [...positionsData].sort((a, b) =>
-        new Date(b.ts).getTime() - new Date(a.ts).getTime()
-      ).slice(0, 10);
+      const sorted = [...positionsData]
+        .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+        .slice(0, 10);
 
       container.innerHTML = sorted.map(pos => {
         const wearable = wearablesData.find(w => w.uid === pos.uid) || {};
         const scan = scansData[pos.uid] || {};
-        const ts = new Date(pos.ts);
+        const ts = pos.ts ? new Date(pos.ts) : new Date();
         const timeAgo = Math.floor((Date.now() - ts.getTime()) / 1000);
         const timeStr = timeAgo < 60 ? `${timeAgo}s` : `${Math.floor(timeAgo / 60)}m`;
 
@@ -1027,33 +679,15 @@
               <span class="item-badge">${timeStr}</span>
             </div>
             <div class="item-details">
-              ${wearable.person_ref ? `<div class="item-detail">
-                <span class="detail-label">Person</span>
-                <span class="detail-value">${wearable.person_ref}</span>
-              </div>` : ''}
-              <div class="item-detail">
-                <span class="detail-label">Methode</span>
-                <span class="detail-value">${pos.method || '-'}</span>
-              </div>
-              ${pos.nearest_anchor_id ? `<div class="item-detail">
-                <span class="detail-label">Anchor</span>
-                <span class="detail-value">${pos.nearest_anchor_id}</span>
-              </div>` : ''}
-              ${pos.dist_m !== null ? `<div class="item-detail">
-                <span class="detail-label">Dist</span>
-                <span class="detail-value">${pos.dist_m.toFixed(1)}m</span>
-              </div>` : ''}
-              <div class="item-detail">
-                <span class="detail-label">Pos (m)</span>
-                <span class="detail-value">x=${(pos.x || 0).toFixed(1)}, y=${(pos.y || 0).toFixed(1)}</span>
-              </div>
+              ${wearable.person_ref ? `<div class="item-detail"><span class="detail-label">Person</span><span class="detail-value">${wearable.person_ref}</span></div>` : ''}
+              <div class="item-detail"><span class="detail-label">Methode</span><span class="detail-value">${pos.method || '-'}</span></div>
+              ${pos.nearest_anchor_id ? `<div class="item-detail"><span class="detail-label">Anchor</span><span class="detail-value">${pos.nearest_anchor_id}</span></div>` : ''}
+              ${pos.dist_m !== null && pos.dist_m !== undefined ? `<div class="item-detail"><span class="detail-label">Dist</span><span class="detail-value">${Number(pos.dist_m).toFixed(1)}m</span></div>` : ''}
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
-    // Focus on marker
     function focusOnMarker(key) {
       const marker = markers[key];
       if (marker) {
@@ -1062,36 +696,112 @@
       }
     }
 
+    // =====================
+    // Batch Scheduler
+    // =====================
+    function scheduleRender() {
+      if (scheduleRender._scheduled) return;
+      scheduleRender._scheduled = true;
+      setTimeout(() => {
+        scheduleRender._scheduled = false;
+
+        if (pending.positions) {
+          queue.positions.forEach(p => updateWearableMarker(p));
+          updateRecentPositions();
+          pending.positions = false;
+          queue.positions.clear();
+        }
+        if (pending.scans) {
+          updateWearableList();
+          pending.scans = false;
+          queue.scans.clear();
+        }
+        if (pending.anchors) { updateAnchorList(); pending.anchors = false; }
+        if (pending.stats) {
+          document.getElementById('stat-active').textContent = stats.active_devices;
+          document.getElementById('stat-anchors').textContent = stats.total_anchors;
+          document.getElementById('stat-wearables').textContent = stats.total_wearables;
+          document.getElementById('stat-positions').textContent = stats.total_positions;
+
+          if (stats.emergency_count > 0) {
+            document.getElementById('emergency-container').innerHTML = `<div class="emergency-banner">⚠️ ${stats.emergency_count} NOTFALL(E) AKTIV!</div>`;
+          } else {
+            document.getElementById('emergency-container').innerHTML = '';
+          }
+          pending.stats = false;
+        }
+      }, 150); // ~6–7 FPS fürs UI
+    }
+
+    // =====================
     // WebSocket
+    // =====================
     function connectWebSocket() {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/positions`;
+      const wsUrl = `${protocol}//${window.location.host}/ws/data`;
 
       ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        console.log('✓ WebSocket connected');
+        log('✓ WebSocket connected to /ws/data');
         document.getElementById('connectionStatus').textContent = 'Live 🟢';
+        retryDelay = 1000; // Reset Backoff
       };
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-
-        if (data.type === 'ping') return;
-
-        console.log('📍 WS Update:', data.uid);
-
-        if (Array.isArray(positionsData)) {
-          const index = positionsData.findIndex(p => p.uid === data.uid);
-          if (index >= 0) {
-            positionsData[index] = data;
-          } else {
-            positionsData.push(data);
+        switch (data.type) {
+          case 'anchor': {
+            if (!anchorsData.find(a => a.id === data.id)) {
+              anchorsData.push(data);
+              pending.anchors = true;
+              scheduleRender();
+            }
+            break;
+          }
+          case 'wearable': {
+            if (!wearablesData.find(w => w.uid === data.uid)) {
+              wearablesData.push(data);
+              pending.scans = true; // Liste aktualisieren
+              scheduleRender();
+            }
+            break;
+          }
+          case 'position': {
+            queue.positions.set(data.uid, data);
+            const idx = positionsData.findIndex(p => p.uid === data.uid);
+            if (idx >= 0) positionsData[idx] = data; else positionsData.push(data);
+            pending.positions = true;
+            scheduleRender();
+            break;
+          }
+          case 'scan': {
+            scansData[data.uid] = data;
+            pending.scans = true;
+            scheduleRender();
+            break;
+          }
+          case 'stats': {
+            stats = {
+              active_devices: data.active_devices,
+              total_anchors: data.total_anchors,
+              total_wearables: data.total_wearables,
+              total_positions: data.total_positions,
+              emergency_count: data.emergency_count
+            };
+            pending.stats = true;
+            scheduleRender();
+            break;
+          }
+          case 'anchor_status': {
+            anchorStatusData[data.anchor_id] = data;
+            const anchor = anchorsData.find(a => a.id === data.anchor_id);
+            if (anchor) updateAnchorMarker(anchor);
+            pending.anchors = true;
+            scheduleRender();
+            break;
           }
         }
-
-        updateWearableMarker(data);
-        updateRecentPositions();
       };
 
       ws.onerror = (error) => {
@@ -1100,46 +810,28 @@
       };
 
       ws.onclose = () => {
-        console.log('⚠ WebSocket closed, reconnecting...');
+        console.warn('⚠ WebSocket closed, reconnecting...', retryDelay);
         document.getElementById('connectionStatus').textContent = 'Getrennt ⚫';
-        setTimeout(connectWebSocket, 3000);
+        setTimeout(connectWebSocket, retryDelay);
+        retryDelay = Math.min(RETRY_DELAY_MAX, Math.floor(retryDelay * 1.8));
       };
     }
 
-    // Initialize
+    // =====================
+    // Init & Page Visibility
+    // =====================
     async function init() {
-      console.log('🚀 Initializing RTLS Dashboard...');
-
+      log('🚀 Initializing BLE-Tracking Dashboard (batched rendering)…');
       initMap();
-
-      await Promise.all([
-        fetchAnchors(),
-        fetchWearables(),
-        fetchAnchorStatus()
-      ]);
-
-      await Promise.all([
-        fetchScans(),
-        fetchPositions(),
-        fetchStats()
-      ]);
-
       connectWebSocket();
-
-      setInterval(fetchStats, 10000);
-      setInterval(async () => {
-        await Promise.all([
-          fetchScans(),
-          fetchAnchorStatus()
-        ]);
-        updateAnchorList();
-        updateWearableList();
-      }, 15000);
-
-      console.log('✓ Dashboard initialized');
+      log('✓ Dashboard initialized');
     }
 
     window.addEventListener('DOMContentLoaded', init);
+
+    document.addEventListener('visibilitychange', () => {
+      document.documentElement.style.setProperty('--anim', document.hidden ? 'paused' : 'running');
+    });
   </script>
 </body>
 </html>

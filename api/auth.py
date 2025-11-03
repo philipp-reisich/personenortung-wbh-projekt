@@ -19,10 +19,8 @@ from .config import get_settings
 from .db import get_db_connection
 
 
-# Password hashing context using Argon2
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-# HTTP bearer scheme for FastAPI
 bearer_scheme = HTTPBearer()
 
 
