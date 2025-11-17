@@ -1,4 +1,5 @@
-"""MQTT ingestion service for the RTLS prototype (extended).
+# path: ingestor/main.py
+"""MQTT ingestion service for the RTLS prototype.
 
 - Subscribes to:
     - rtls/anchor/+/scan    -> table scans  (now with temp_c, tx_power_dbm, adv_seq, flags, emergency)
@@ -33,8 +34,10 @@ from pydantic import BaseModel, ValidationError, Field
 # --------------------------- Logging -----------------------------------------
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=getattr(logging, LOG_LEVEL, logging.INFO),
-                    format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
 logger = logging.getLogger("ingestor")
 
 # --------------------------- Config ------------------------------------------
@@ -48,7 +51,7 @@ DB_DSN = DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
 MQTT_HOST = os.getenv("MQTT_BROKER_HOST", "mqtt")
 MQTT_PORT = int(os.getenv("MQTT_BROKER_PORT", "1883"))
 
-SUB_TOPIC_SCAN   = os.getenv("SUB_TOPIC_SCAN",   "rtls/anchor/+/scan")
+SUB_TOPIC_SCAN = os.getenv("SUB_TOPIC_SCAN", "rtls/anchor/+/scan")
 SUB_TOPIC_STATUS = os.getenv("SUB_TOPIC_STATUS", "rtls/anchor/+/status")
 SUB_TOPIC_EVENTS = os.getenv("SUB_TOPIC_EVENTS", "rtls/events")
 
@@ -59,14 +62,18 @@ BATCH_MAX_AGE_S = float(os.getenv("BATCH_MAX_AGE_S", "1.0"))
 
 IDS_REFRESH_S = int(os.getenv("IDS_REFRESH_S", "60"))
 TS_MIN_EPOCH_MS = int(os.getenv("TS_MIN_EPOCH_MS", "1514764800000"))  # 2018-01-01
-ALLOW_FALLBACK_NOW_TS = os.getenv("ALLOW_FALLBACK_NOW_TS", "true").lower() in ("1", "true", "yes")
+ALLOW_FALLBACK_NOW_TS = os.getenv("ALLOW_FALLBACK_NOW_TS", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 MQTT_CLIENT_ID = os.getenv(
-    "MQTT_CLIENT_ID",
-    f"rtls-ingestor-{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
+    "MQTT_CLIENT_ID", f"rtls-ingestor-{socket.gethostname()}-{uuid.uuid4().hex[:6]}"
 )
 
 # --------------------------- Models ------------------------------------------
+
 
 class _TsMixin:
     ts: Optional[int]
@@ -82,16 +89,18 @@ class _TsMixin:
             ts_ms = now_ms
         return datetime.fromtimestamp(ts_ms / 1000.0, tz=timezone.utc)
 
+
 class ScanMessage(BaseModel, _TsMixin):
     ts: Optional[int] = None
     anchor_id: str = Field(min_length=1, max_length=64)
     uid: str = Field(min_length=1, max_length=64)
     rssi: float
     adv_seq: Optional[int] = None
-    battery: Optional[float] = None        # Volt
+    battery: Optional[float] = None  # Volt
     temp_c: Optional[float] = None
     tx_power_dbm: Optional[int] = None
     emergency: Optional[bool] = None
+
 
 class AnchorStatus(BaseModel, _TsMixin):
     ts: Optional[int] = None
@@ -106,6 +115,7 @@ class AnchorStatus(BaseModel, _TsMixin):
     tx_power_dbm: Optional[int] = None
     ble_scan_active: Optional[bool] = None
 
+
 class RtlsEvent(BaseModel, _TsMixin):
     ts: Optional[int] = None
     uid: str
@@ -114,7 +124,9 @@ class RtlsEvent(BaseModel, _TsMixin):
     details: Optional[str] = None
     anchor_id: Optional[str] = None
 
+
 # --------------------------- Known IDs cache ---------------------------------
+
 
 @dataclass
 class KnownIds:
@@ -128,7 +140,9 @@ class KnownIds:
         w_rows = await conn.fetch("SELECT uid FROM wearables")
         anchors = {r["id"] for r in a_rows}
         wearables = {r["uid"] for r in w_rows}
-        logger.info("loaded known ids: %d anchors, %d wearables", len(anchors), len(wearables))
+        logger.info(
+            "loaded known ids: %d anchors, %d wearables", len(anchors), len(wearables)
+        )
         return cls(anchors=anchors, wearables=wearables, last_loaded_s=time.monotonic())
 
     async def ensure_fresh(self, conn):
@@ -139,9 +153,13 @@ class KnownIds:
             self.wearables = refreshed.wearables
             self.last_loaded_s = refreshed.last_loaded_s
 
+
 # --------------------------- Batch flushers ----------------------------------
 
-async def flush_scans(batch: List[ScanMessage], pool: asyncpg.Pool, kid: KnownIds) -> None:
+
+async def flush_scans(
+    batch: List[ScanMessage], pool: asyncpg.Pool, kid: KnownIds
+) -> None:
     if not batch:
         return
     async with pool.acquire() as conn:
@@ -157,16 +175,31 @@ async def flush_scans(batch: List[ScanMessage], pool: asyncpg.Pool, kid: KnownId
         if msg.anchor_id not in kid.anchors or msg.uid not in kid.wearables:
             skipped_unknown += 1
             if skipped_unknown <= 5:
-                logger.warning("Skipping scan due to unknown FK (anchor_id=%s, uid=%s)", msg.anchor_id, msg.uid)
+                logger.warning(
+                    "Skipping scan due to unknown FK (anchor_id=%s, uid=%s)",
+                    msg.anchor_id,
+                    msg.uid,
+                )
             continue
-        valid.append((
-            ts, msg.anchor_id, msg.uid, float(msg.rssi),
-            msg.battery, msg.temp_c, msg.tx_power_dbm,
-            msg.adv_seq, None, bool(msg.emergency) if msg.emergency is not None else None
-        ))
+        valid.append(
+            (
+                ts,
+                msg.anchor_id,
+                msg.uid,
+                float(msg.rssi),
+                msg.battery,
+                msg.temp_c,
+                msg.tx_power_dbm,
+                msg.adv_seq,
+                None,
+                bool(msg.emergency) if msg.emergency is not None else None,
+            )
+        )
     if not valid:
         if skipped_unknown:
-            logger.info("Scan batch had only unknown FK rows (skipped=%d)", skipped_unknown)
+            logger.info(
+                "Scan batch had only unknown FK rows (skipped=%d)", skipped_unknown
+            )
         return
     async with pool.acquire() as conn:
         try:
@@ -176,10 +209,13 @@ async def flush_scans(batch: List[ScanMessage], pool: asyncpg.Pool, kid: KnownId
                   (ts, anchor_id, uid, rssi, battery, temp_c, tx_power_dbm, adv_seq, flags, emergency)
                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
                 """,
-                valid
+                valid,
             )
-            logger.info("Inserted %d scans%s", len(valid),
-                        f" (skipped {skipped_unknown} unknown)" if skipped_unknown else "")
+            logger.info(
+                "Inserted %d scans%s",
+                len(valid),
+                f" (skipped {skipped_unknown} unknown)" if skipped_unknown else "",
+            )
         except asyncpg.exceptions.ForeignKeyViolationError:
             inserted = 0
             for rec in valid:
@@ -190,14 +226,19 @@ async def flush_scans(batch: List[ScanMessage], pool: asyncpg.Pool, kid: KnownId
                           (ts, anchor_id, uid, rssi, battery, temp_c, tx_power_dbm, adv_seq, flags, emergency)
                         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
                         """,
-                        *rec
+                        *rec,
                     )
                     inserted += 1
                 except asyncpg.exceptions.ForeignKeyViolationError:
                     pass
-            logger.info("FK violation during scan batch; inserted %d/%d", inserted, len(valid))
+            logger.info(
+                "FK violation during scan batch; inserted %d/%d", inserted, len(valid)
+            )
 
-async def flush_status(batch: List[AnchorStatus], pool: asyncpg.Pool, kid: KnownIds) -> None:
+
+async def flush_status(
+    batch: List[AnchorStatus], pool: asyncpg.Pool, kid: KnownIds
+) -> None:
     if not batch:
         return
     async with pool.acquire() as conn:
@@ -208,15 +249,28 @@ async def flush_status(batch: List[AnchorStatus], pool: asyncpg.Pool, kid: Known
         try:
             ts = msg.coerce_ts_dt()
         except Exception as e:
-            logger.warning("Skipping status with bad ts: %s (payload=%s)", e, msg.dict())
+            logger.warning(
+                "Skipping status with bad ts: %s (payload=%s)", e, msg.dict()
+            )
             continue
         if msg.anchor_id not in kid.anchors:
             skipped += 1
             continue
-        valid.append((
-            ts, msg.anchor_id, msg.ip, msg.fw, msg.uptime_s, msg.wifi_rssi,
-            msg.heap_free, msg.heap_min, msg.chip_temp_c, msg.tx_power_dbm, msg.ble_scan_active
-        ))
+        valid.append(
+            (
+                ts,
+                msg.anchor_id,
+                msg.ip,
+                msg.fw,
+                msg.uptime_s,
+                msg.wifi_rssi,
+                msg.heap_free,
+                msg.heap_min,
+                msg.chip_temp_c,
+                msg.tx_power_dbm,
+                msg.ble_scan_active,
+            )
+        )
     if not valid:
         return
     async with pool.acquire() as conn:
@@ -226,12 +280,18 @@ async def flush_status(batch: List[AnchorStatus], pool: asyncpg.Pool, kid: Known
               (ts, anchor_id, ip, fw, uptime_s, wifi_rssi, heap_free, heap_min, chip_temp_c, tx_power_dbm, ble_scan_active)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
             """,
-            valid
+            valid,
         )
-        logger.info("Inserted %d anchor_status rows%s", len(valid),
-                    f" (skipped {skipped})" if skipped else "")
+        logger.info(
+            "Inserted %d anchor_status rows%s",
+            len(valid),
+            f" (skipped {skipped})" if skipped else "",
+        )
 
-async def flush_events(batch: List[RtlsEvent], pool: asyncpg.Pool, kid: KnownIds) -> None:
+
+async def flush_events(
+    batch: List[RtlsEvent], pool: asyncpg.Pool, kid: KnownIds
+) -> None:
     if not batch:
         return
     async with pool.acquire() as conn:
@@ -253,39 +313,58 @@ async def flush_events(batch: List[RtlsEvent], pool: asyncpg.Pool, kid: KnownIds
     async with pool.acquire() as conn:
         await conn.executemany(
             "INSERT INTO events (ts, uid, type, severity, details) VALUES ($1,$2,$3,$4,$5)",
-            valid
+            valid,
         )
-        logger.info("Inserted %d events%s", len(valid),
-                    f" (skipped {skipped})" if skipped else "")
+        logger.info(
+            "Inserted %d events%s",
+            len(valid),
+            f" (skipped {skipped})" if skipped else "",
+        )
+
 
 # --------------------------- MQTT plumbing -----------------------------------
 
-def build_mqtt_client(loop: asyncio.AbstractEventLoop,
-                      scan_q: asyncio.Queue[ScanMessage],
-                      status_q: asyncio.Queue[AnchorStatus],
-                      event_q: asyncio.Queue[RtlsEvent]) -> mqtt.Client:
+
+def build_mqtt_client(
+    loop: asyncio.AbstractEventLoop,
+    scan_q: asyncio.Queue[ScanMessage],
+    status_q: asyncio.Queue[AnchorStatus],
+    event_q: asyncio.Queue[RtlsEvent],
+) -> mqtt.Client:
     client = mqtt.Client(client_id=MQTT_CLIENT_ID, clean_session=True)
     client.enable_logger()
     client.reconnect_delay_set(min_delay=1, max_delay=30)
-    client.will_set("rtls/ingestor/status",
-                    payload=json.dumps({"status": "offline", "client_id": MQTT_CLIENT_ID}),
-                    qos=1, retain=True)
+    client.will_set(
+        "rtls/ingestor/status",
+        payload=json.dumps({"status": "offline", "client_id": MQTT_CLIENT_ID}),
+        qos=1,
+        retain=True,
+    )
 
     def on_connect(c, userdata, flags, rc):
         if rc == 0:
             logger.info("Connected to MQTT broker at %s:%d", MQTT_HOST, MQTT_PORT)
-            c.publish("rtls/ingestor/status",
-                      json.dumps({"status": "online", "client_id": MQTT_CLIENT_ID}),
-                      qos=1, retain=True)
-            c.subscribe([(SUB_TOPIC_SCAN, MQTT_QOS),
-                         (SUB_TOPIC_STATUS, MQTT_QOS),
-                         (SUB_TOPIC_EVENTS, MQTT_QOS)])
+            c.publish(
+                "rtls/ingestor/status",
+                json.dumps({"status": "online", "client_id": MQTT_CLIENT_ID}),
+                qos=1,
+                retain=True,
+            )
+            c.subscribe(
+                [
+                    (SUB_TOPIC_SCAN, MQTT_QOS),
+                    (SUB_TOPIC_STATUS, MQTT_QOS),
+                    (SUB_TOPIC_EVENTS, MQTT_QOS),
+                ]
+            )
         else:
             logger.error("MQTT connect failed: rc=%s", rc)
 
     def on_disconnect(c, userdata, rc):
         if rc != 0:
-            logger.warning("MQTT unexpected disconnect (rc=%s) – will auto-reconnect", rc)
+            logger.warning(
+                "MQTT unexpected disconnect (rc=%s) – will auto-reconnect", rc
+            )
 
     def on_message(c, userdata, msg: mqtt.MQTTMessage):
         try:
@@ -319,11 +398,17 @@ def build_mqtt_client(loop: asyncio.AbstractEventLoop,
     client.loop_start()
     return client
 
+
 # --------------------------- Main --------------------------------------------
 
+
 async def run() -> None:
-    logger.info("Starting ingestor (batch size=%d, max_age=%.2fs, qos=%d)",
-                BATCH_MAX_SIZE, BATCH_MAX_AGE_S, MQTT_QOS)
+    logger.info(
+        "Starting ingestor (batch size=%d, max_age=%.2fs, qos=%d)",
+        BATCH_MAX_SIZE,
+        BATCH_MAX_AGE_S,
+        MQTT_QOS,
+    )
 
     pool = await asyncpg.create_pool(DB_DSN, min_size=1, max_size=10)
 
@@ -385,10 +470,10 @@ async def run() -> None:
                     break
 
             do_flush = (
-                (time.monotonic() - last_flush) >= BATCH_MAX_AGE_S or
-                len(scans_buf) >= BATCH_MAX_SIZE or
-                len(status_buf) >= BATCH_MAX_SIZE//2 or
-                len(events_buf) >= BATCH_MAX_SIZE//2
+                (time.monotonic() - last_flush) >= BATCH_MAX_AGE_S
+                or len(scans_buf) >= BATCH_MAX_SIZE
+                or len(status_buf) >= BATCH_MAX_SIZE // 2
+                or len(events_buf) >= BATCH_MAX_SIZE // 2
             )
 
             if do_flush and (scans_buf or status_buf or events_buf):
@@ -402,7 +487,9 @@ async def run() -> None:
                     await flush_events(events_buf, pool, known)
                     events_buf.clear()
                 last_flush = time.monotonic()
-            elif did_any is False and (time.monotonic() - last_flush) >= BATCH_MAX_AGE_S:
+            elif (
+                did_any is False and (time.monotonic() - last_flush) >= BATCH_MAX_AGE_S
+            ):
                 # periodic flush even if no new data (no-op)
                 last_flush = time.monotonic()
 
@@ -422,6 +509,7 @@ async def run() -> None:
             pass
         await pool.close()
         logger.info("Ingestor shutdown complete")
+
 
 if __name__ == "__main__":
     try:

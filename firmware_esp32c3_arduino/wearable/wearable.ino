@@ -1,35 +1,35 @@
 /*
- * Wearable (ESP32-C3) BLE-Advertiser – volle Leistung (+9 dBm), gültige Manufacturer Data
+ * Wearable (ESP32-C3) BLE Advertiser – full TX power (+9 dBm), valid Manufacturer Data
  *
- * Manufacturer Data (14 Byte) – inkl. Company ID (0xFFFF):
+ * Manufacturer Data (14 bytes) – including Company ID (0xFFFF):
  * [0..1]  company_id_le = 0xFF, 0xFF
- * [2..4]  uid_3 = erste 3 Zeichen aus WEARABLE_UID (nur informativ)
+ * [2..4]  uid_3 = first 3 characters of WEARABLE_UID (informational only)
  * [5..6]  adv_seq (uint16, BE)
- * [7..8]  batt_mV (uint16, BE)   // VBUS/2 via Spannungsteiler
+ * [7..8]  batt_mV (uint16, BE)   // VBUS/2 through voltage divider
  * [9..10] temp_c_x100 (int16, BE)
- * [11]    flags (bit0=Emergency)
- * [12]    tx_power_dbm (int8)    -> immer 9
+ * [11]    flags (bit0 = Emergency)
+ * [12]    tx_power_dbm (int8)    -> always 9
  * [13]    reserved
  *
- * - Advert-Name = WEARABLE_UID (z.B. "W-01"); Anchor nutzt den Namen als UID.
- * - TX-Power: immer +9 dBm
- * - Advert-Intervall: Idle ~1–1.25 s, Emergency ~100–125 ms
- * - Payload-Refresh: alle 5 s (Emergency: 1 s)
- * - VBUS messen: Spannungsteiler 1:2 auf ADC0 (GPIO0/ADC1_CH0)
+ * - Advertised name = WEARABLE_UID (e.g. "W-01"); the anchor uses the name as UID.
+ * - TX power: always +9 dBm
+ * - Advertising interval: Idle ~1–1.25 s, Emergency ~100–125 ms
+ * - Payload refresh rate: every 5 s (Emergency: every 1 s)
+ * - VBUS measurement: voltage divider 1:2 on ADC0 (GPIO0 / ADC1_CH0)
  */
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>
-#include "secrets.h"   // definiert WEARABLE_UID
+#include "secrets.h"
 
-#define PIN_EMERGENCY   9     // Taster nach GND, interner Pullup
+#define PIN_EMERGENCY   9     // Button to GND, internal pull-up
 #define ADV_LEN         14
-#define TX_DBM_CONST    9     // immer volle Leistung
+#define TX_DBM_CONST    9     // always full power
 
 NimBLEAdvertising *pAdvertising = nullptr;
 uint32_t advSeq = 1;
 
-// --- Temperatur lesen ---
+// --- Read onboard temperature ---
 static float readBoardTempC() {
 #if defined(ARDUINO_ARCH_ESP32)
   #ifdef temperatureRead
@@ -42,23 +42,22 @@ static float readBoardTempC() {
 #endif
 }
 
-// --- VBUS/"Battery" (mit Teiler 1:2 auf ADC0) ---
+// --- Read VBUS/"Battery" (with 1:2 divider on ADC0) ---
 static float readBatteryVoltage() {
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
   uint32_t mv = analogReadMilliVolts(0); // GPIO0 / ADC1_CH0
-  return (mv * 2.0f) / 1000.0f;          // zurückrechnen auf VBUS in Volt
+  return (mv * 2.0f) / 1000.0f;
 }
 
 static void setAdvIntervalMs(uint16_t min_ms, uint16_t max_ms) {
-  // BLE-Einheiten: 0.625 ms
   uint16_t min_itv = min<uint16_t>(max<uint16_t>(min_ms * 1000 / 625, 32), 16384);
   uint16_t max_itv = min<uint16_t>(max<uint16_t>(max_ms * 1000 / 625, 32), 16384);
   pAdvertising->setMinInterval(min_itv);
   pAdvertising->setMaxInterval(max_itv);
 }
 
-// --- Advertisement-Daten aktualisieren ---
+// --- Update advertisement payload ---
 static void updateAdvertisement() {
   uint32_t seq = advSeq++;
   float vbat = readBatteryVoltage();
@@ -67,11 +66,11 @@ static void updateAdvertisement() {
 
   uint8_t mfg[ADV_LEN] = {0};
 
-  // Company ID (little endian) – 0xFFFF als Test-ID
+  // Company ID (little endian) – 0xFFFF as test ID
   mfg[0] = 0xFF;
   mfg[1] = 0xFF;
 
-  // UID (3 Bytes) – nur als Marker
+  // UID (3 bytes)
   size_t uid_len = strlen(WEARABLE_UID);
   memcpy(&mfg[2], WEARABLE_UID, min(uid_len, (size_t)3));
 
@@ -84,7 +83,7 @@ static void updateAdvertisement() {
   mfg[7] = (batt_mv >> 8) & 0xFF;
   mfg[8] = batt_mv & 0xFF;
 
-  // Temp * 100 (int16, BE), NaN -> 0x7FFF
+  // Temperature * 100 (int16, BE), NaN -> 0x7FFF
   int16_t t100 = isnan(tC) ? (int16_t)0x7FFF : (int16_t) lroundf(tC * 100.0f);
   mfg[9]  = (t100 >> 8) & 0xFF;
   mfg[10] = t100 & 0xFF;
@@ -92,7 +91,7 @@ static void updateAdvertisement() {
   // Flags
   mfg[11] = emergency ? 0x01 : 0x00;
 
-  // TX power (dBm) – immer +9
+  // TX power (dBm) – always +9
   mfg[12] = (uint8_t)TX_DBM_CONST;
 
   // Reserved
@@ -113,7 +112,7 @@ void setup() {
 
   NimBLEDevice::init("");
 
-  // Immer volle Leistung (+9 dBm)
+  // Always full TX power (+9 dBm)
   esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9);
   esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV,     ESP_PWR_LVL_P9);
   esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN,    ESP_PWR_LVL_P9);
@@ -121,7 +120,7 @@ void setup() {
   pAdvertising = NimBLEDevice::getAdvertising();
   pAdvertising->enableScanResponse(false);
 
-  // Idle-Intervall: 1–1.25 s
+  // Idle interval: 1–1.25 s
   setAdvIntervalMs(1000, 1250);
 
   updateAdvertisement();
@@ -136,7 +135,7 @@ void loop() {
   const bool emergency = (digitalRead(PIN_EMERGENCY) == LOW);
   const unsigned long period = emergency ? 1000 : 5000;
 
-  // Bei Notfall nur WerbeINTERVALL beschleunigen (Leistung bleibt +9 dBm)
+  // In emergency mode only the advertising INTERVAL is increased (TX power stays +9 dBm)
   if (emergency && !fastAdv) {
     setAdvIntervalMs(100, 125);
     if (pAdvertising->isAdvertising()) pAdvertising->refreshAdvertisingData();

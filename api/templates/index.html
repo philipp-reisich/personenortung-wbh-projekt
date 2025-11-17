@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,8 +8,7 @@
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin="" />
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
   <style>
     * {
@@ -17,9 +17,12 @@
       box-sizing: border-box;
     }
 
-    :root { --anim: running; }
+    :root {
+      --anim: running;
+    }
 
-    html, body {
+    html,
+    body {
       height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f0f2f5;
@@ -76,8 +79,15 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.5
+      }
     }
 
     .content {
@@ -182,9 +192,17 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .stat-card.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-    .stat-card.orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-    .stat-card.blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .stat-card.green {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .stat-card.orange {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-card.blue {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
 
     .stat-label {
       font-size: 0.8rem;
@@ -194,7 +212,10 @@
       letter-spacing: 0.5px;
     }
 
-    .stat-value { font-size: 2rem; font-weight: 700; }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+    }
 
     .section-title {
       font-size: 1rem;
@@ -206,7 +227,11 @@
       gap: 0.5rem;
     }
 
-    .item-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
 
     .item-card {
       background: #f8f9fa;
@@ -224,20 +249,67 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .item-card.emergency { border-left: 4px solid #f44336; background: #ffebee; }
+    .item-card.emergency {
+      border-left: 4px solid #f44336;
+      background: #ffebee;
+    }
 
-    .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-    .item-id { font-weight: 600; color: #1a237e; font-size: 0.95rem; font-family: 'Courier New', monospace; }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
 
-    .item-badge { background: #1a237e; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
-    .item-badge.online { background: #4caf50; }
-    .item-badge.offline { background: #9e9e9e; }
+    .item-id {
+      font-weight: 600;
+      color: #1a237e;
+      font-size: 0.95rem;
+      font-family: 'Courier New', monospace;
+    }
 
-    .item-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.85rem; color: #666; }
+    .item-badge {
+      background: #1a237e;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
 
-    .item-detail { display: flex; flex-direction: column; }
-    .detail-label { font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.3px; }
-    .detail-value { font-weight: 600; color: #333; font-family: 'Courier New', monospace; }
+    .item-badge.online {
+      background: #4caf50;
+    }
+
+    .item-badge.offline {
+      background: #9e9e9e;
+    }
+
+    .item-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .item-detail {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-label {
+      font-size: 0.75rem;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .detail-value {
+      font-weight: 600;
+      color: #333;
+      font-family: 'Courier New', monospace;
+    }
 
     .emergency-banner {
       background: #f44336;
@@ -250,49 +322,161 @@
       margin-bottom: 1rem;
     }
 
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    @keyframes blink {
 
-    .no-data { text-align: center; padding: 2rem; color: #999; font-style: italic; }
+      0%,
+      100% {
+        opacity: 1;
+      }
 
-    .custom-marker { display: inline-block; }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 2rem;
+      color: #999;
+      font-style: italic;
+    }
+
+    .custom-marker {
+      display: inline-block;
+    }
 
     .anchor-marker {
-      background: #1a237e; color: white; border: 3px solid white; border-radius: 50%; width: 45px; height: 45px;
-      display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.65rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      font-family: 'Courier New', monospace; overflow: hidden; word-break: break-all; text-align: center; line-height: 1.2; padding: 2px;
+      background: #1a237e;
+      color: white;
+      border: 3px solid white;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.65rem;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+      word-break: break-all;
+      text-align: center;
+      line-height: 1.2;
+      padding: 2px;
+    }
+
+    .anchor-marker.offline {
+      background: #9e9e9e;
+    }
+
+    .anchor-marker.online {
+      background: #1a237e;
     }
 
     .wearable-marker {
-      background: #4caf50; color: white; border: 3px solid white; border-radius: 50%; width: 40px; height: 40px;
-      display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.6rem; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      font-family: 'Courier New', monospace; overflow: hidden; word-break: break-all; text-align: center; line-height: 1.2; padding: 2px;
+      background: #4caf50;
+      color: white;
+      border: 3px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.6rem;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+      word-break: break-all;
+      text-align: center;
+      line-height: 1.2;
+      padding: 2px;
     }
 
-    .wearable-marker.emergency { background: #f44336; animation: emergencyPulse 1s ease-in-out infinite; }
-    .wearable-marker.single-anchor { background: #ff9800; }
+    .wearable-marker.emergency {
+      background: #f44336;
+      animation: emergencyPulse 1s ease-in-out infinite;
+    }
+
+    .wearable-marker.single-anchor {
+      background: #ff9800;
+    }
 
     @keyframes emergencyPulse {
-      0%, 100% { transform: scale(1); box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3); }
-      50% { transform: scale(1.2); box-shadow: 0 6px 12px rgba(244, 67, 54, 0.6); }
+
+      0%,
+      100% {
+        transform: scale(1);
+        box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+      }
+
+      50% {
+        transform: scale(1.2);
+        box-shadow: 0 6px 12px rgba(244, 67, 54, 0.6);
+      }
     }
 
     .distance-label {
-      background: rgba(255, 152, 0, 0.9); color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; white-space: nowrap; pointer-events: none; font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      white-space: nowrap;
+      pointer-events: none;
+      font-family: 'Courier New', monospace;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.5);
     }
 
-    .leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
 
-    .popup-content { font-size: 0.85rem; font-family: 'Courier New', monospace; }
-    .popup-title { font-weight: 600; font-size: 1rem; color: #1a237e; margin-bottom: 0.5rem; }
+    .popup-content {
+      font-size: 0.85rem;
+      font-family: 'Courier New', monospace;
+    }
 
-    .popup-detail { display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px solid #eee; font-size: 0.8rem; }
-    .popup-detail:last-child { border-bottom: none; }
-    .popup-label { color: #666; font-weight: 500; }
-    .popup-value { color: #333; font-weight: 600; }
+    .popup-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #1a237e;
+      margin-bottom: 0.5rem;
+    }
 
-    .leaflet-control-zoom { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
+    .popup-detail {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #eee;
+      font-size: 0.8rem;
+    }
+
+    .popup-detail:last-child {
+      border-bottom: none;
+    }
+
+    .popup-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .popup-value {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .leaflet-control-zoom {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
     <header>
@@ -375,15 +559,14 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin=""></script>
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
     // =====================
     // Config & Globals
     // =====================
     const FIELD_WIDTH = 10;
-    const FIELD_HEIGHT = 25;
+    const FIELD_HEIGHT = 30;
     const GRID_SIZE = 1;
 
     const DEBUG = false;
@@ -406,8 +589,48 @@
     let boundsRectangle;
 
     // Batch-Rendering Flags & Queues
-    const pending = { anchors:false, wearables:false, positions:false, scans:false, stats:false };
+    const pending = { anchors: false, wearables: false, positions: false, scans: false, stats: false };
     const queue = { positions: new Map(), scans: new Map() };
+
+    // =====================
+    // Helper
+    // =====================
+    function computeAnchorOnline(status) {
+      // bevorzugt serverseitiges Flag, sonst 5-Minuten-Fallback
+      const hasIso = status && status.ts;
+      const lastMs = hasIso ? Date.parse(status.ts) : null;
+      const isRecent = lastMs ? (Date.now() - lastMs) < 5 * 60 * 1000 : false;
+      const isOnline = status && (status.is_online !== undefined ? !!status.is_online : (isRecent && !!status.ble_scan_active));
+      return { isOnline, lastIso: hasIso ? status.ts : null };
+    }
+    function formatAge(tsIso) {
+      if (!tsIso) return '–';
+      const diff = Math.max(0, Date.now() - Date.parse(tsIso));
+      const s = Math.floor(diff / 1000);
+      if (s < 60) return `${s}s`;
+      const m = Math.floor(s / 60);
+      if (m < 60) return `${m}m`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `${h}h`;
+      const d = Math.floor(h / 24);
+      return `${d}d`;
+    }
+
+    // NEU: Popup-Inhalt für Anchors zentral bauen
+    function buildAnchorPopup(anchor) {
+      const status = anchorStatusData[anchor.id] || {};
+      const { isOnline, lastIso } = computeAnchorOnline(status);
+      return `
+        <div class="popup-content">
+          <div class="popup-title">${anchor.id}</div>
+          <div class="popup-detail"><span class="popup-label">Status:</span><span class="popup-value">${isOnline ? 'Online 🟢' : 'Offline ⚫'}</span></div>
+          <div class="popup-detail"><span class="popup-label">Letztes Update:</span><span class="popup-value">${formatAge(lastIso)}</span></div>
+          <div class="popup-detail"><span class="popup-label">Name:</span><span class="popup-value">${anchor.name || 'N/A'}</span></div>
+          <div class="popup-detail"><span class="popup-label">Pos:</span><span class="popup-value">(x=${anchor.x.toFixed(1)}m, y=${anchor.y.toFixed(1)}m)</span></div>
+          ${status.ip ? `<div class="popup-detail"><span class="popup-label">IP:</span><span class="popup-value">${status.ip}</span></div>` : ''}
+          ${status.wifi_rssi !== null && status.wifi_rssi !== undefined ? `<div class="popup-detail"><span class="popup-label">WiFi:</span><span class="popup-value">${status.wifi_rssi} dBm</span></div>` : ''}
+        </div>`;
+    }
 
     // =====================
     // Map
@@ -437,10 +660,11 @@
 
       drawGrid();
 
-      map.on('mousemove', function(e) {
+      map.on('mousemove', function (e) {
         const meters_y = e.latlng.lat.toFixed(1);
         const meters_x = e.latlng.lng.toFixed(1);
-        document.getElementById('mapCoords').innerHTML = `<strong>Pos:</strong> x=${meters_x}m, y=${meters_y}m`;
+        const el = document.getElementById('mapCoords');
+        if (el) el.innerHTML = `<strong>Pos:</strong> x=${meters_x}m, y=${meters_y}m`;
       });
 
       log('✓ Leaflet map initialized');
@@ -460,42 +684,35 @@
       return L.divIcon({ className: 'custom-marker', html: `<div class="${className}">${label}</div>`, iconSize: [45, 45], iconAnchor: [22.5, 22.5] });
     }
 
+    // === WICHTIG: Marker + Popup immer updaten ===
     function updateAnchorMarker(anchor) {
       if (!anchor) return;
       const key = `anchor-${anchor.id}`;
       const position = [anchor.y, anchor.x];
 
+      const status = anchorStatusData[anchor.id] || {};
+      const { isOnline } = computeAnchorOnline(status);
+      const iconClass = `anchor-marker ${isOnline ? 'online' : 'offline'}`;
+      const popupHtml = buildAnchorPopup(anchor);
+
       if (markers[key]) {
-        markers[key].setLatLng(position);
+        const m = markers[key];
+        m.setLatLng(position);
+        m.setIcon(createMarkerIcon(iconClass, anchor.id));
+        if (m.getPopup()) {
+          m.setPopupContent(popupHtml); // immer aktualisieren (auch wenn geschlossen)
+        } else {
+          m.bindPopup(popupHtml);
+        }
       } else {
-        const icon = createMarkerIcon('anchor-marker', anchor.id);
+        const icon = createMarkerIcon(iconClass, anchor.id);
         const marker = L.marker(position, { icon }).addTo(map);
-
-        const status = anchorStatusData[anchor.id] || {};
-        const popupContent = `
-          <div class="popup-content">
-            <div class="popup-title">${anchor.id}</div>
-            <div class="popup-detail"><span class="popup-label">Name:</span><span class="popup-value">${anchor.name || 'N/A'}</span></div>
-            <div class="popup-detail"><span class="popup-label">Pos:</span><span class="popup-value">(x=${anchor.x.toFixed(1)}m, y=${anchor.y.toFixed(1)}m)</span></div>
-            ${status.ip ? `<div class="popup-detail"><span class="popup-label">IP:</span><span class="popup-value">${status.ip}</span></div>` : ''}
-            ${status.wifi_rssi !== null && status.wifi_rssi !== undefined ? `<div class="popup-detail"><span class="popup-label">WiFi:</span><span class="popup-value">${status.wifi_rssi} dBm</span></div>` : ''}
-          </div>`;
-        marker.bindPopup(popupContent);
+        marker.bindPopup(popupHtml);
+        // Bei jedem Öffnen den Inhalt frisch rendern
+        marker.on('popupopen', () => {
+          marker.setPopupContent(buildAnchorPopup(anchor));
+        });
         markers[key] = marker;
-      }
-
-      const m = markers[key];
-      if (m && m.isPopupOpen && m.isPopupOpen()) {
-        const status = anchorStatusData[anchor.id] || {};
-        const popupContent = `
-          <div class="popup-content">
-            <div class="popup-title">${anchor.id}</div>
-            <div class="popup-detail"><span class="popup-label">Name:</span><span class="popup-value">${anchor.name || 'N/A'}</span></div>
-            <div class="popup-detail"><span class="popup-label">Pos:</span><span class="popup-value">(x=${anchor.x.toFixed(1)}m, y=${anchor.y.toFixed(1)}m)</span></div>
-            ${status.ip ? `<div class="popup-detail"><span class="popup-label">IP:</span><span class="popup-value">${status.ip}</span></div>` : ''}
-            ${status.wifi_rssi !== null && status.wifi_rssi !== undefined ? `<div class="popup-detail"><span class="popup-label">WiFi:</span><span class="popup-value">${status.wifi_rssi} dBm</span></div>` : ''}
-          </div>`;
-        m.setPopupContent(popupContent);
       }
     }
 
@@ -513,7 +730,8 @@
         if (anchor) {
           isSingleAnchor = true;
           const offsetX = 2.0;
-          latLng = [anchor.y, anchor.x + offsetX];
+          const offsetY = 0.0;
+          latLng = [anchor.y + offsetY, anchor.x + offsetX];
           markerClass = 'wearable-marker single-anchor';
           addDistanceLabel(position.uid, anchor, position.dist_m);
         } else {
@@ -543,22 +761,39 @@
         m.setPopupContent(popupContent);
       }
     }
-
     function addDistanceLabel(uid, anchor, distance) {
       const labelKey = `label-${uid}`;
-      if (distanceLabels[labelKey]) distanceLabels[labelKey].remove();
 
-      const offsetX = 2.5;
-      const offsetY = 0.5;
-      const labelLatLng = L.latLng(anchor.y + offsetY, anchor.x + offsetX);
+      if (distanceLabels[labelKey]) {
+        map.removeLayer(distanceLabels[labelKey]);
+        delete distanceLabels[labelKey];
+      }
 
-      const html = `<div class="distance-label" style="transform: translate(-50%, -50%);">${Number(distance).toFixed(1)}m</div>`;
+      if (!anchor || distance === null || distance === undefined) {
+        return;
+      }
+      const midX = anchor.x + 2.0;
+      const midY = anchor.y + 1.5;
+      const labelLatLng = L.latLng(midY, midX);
 
-      const icon = L.divIcon({ className: 'custom-marker', html, iconSize: [50, 20], iconAnchor: [25, 10] });
-      const label = L.marker(labelLatLng, { icon, interactive: false }).addTo(map);
-      distanceLabels[labelKey] = label;
+      const distanceText = Number(distance).toFixed(1);
+      const html = `<div class="distance-label">↔️ ${distanceText}m</div>`;
+
+      const icon = L.divIcon({
+        className: 'custom-marker distance-marker',
+        html: html,
+        iconSize: [85, 30],
+        iconAnchor: [42, 15],
+        popupAnchor: [0, -15]
+      });
+
+      try {
+        const label = L.marker(labelLatLng, { icon, interactive: false }).addTo(map);
+        distanceLabels[labelKey] = label;
+      } catch (e) {
+        console.warn('Fehler beim Hinzufügen des Labels:', e);
+      }
     }
-
     function buildWearablePopup(position, wearable, scan, isSingleAnchor) {
       let positionStr = '';
       if (position.x && position.y) {
@@ -605,7 +840,8 @@
 
       container.innerHTML = anchorsData.map(anchor => {
         const status = anchorStatusData[anchor.id] || {};
-        const online = status.ble_scan_active ? 'online' : 'offline';
+        const { isOnline, lastIso } = computeAnchorOnline(status);
+        const online = isOnline ? 'online' : 'offline';
         return `
           <div class="item-card" onclick="focusOnMarker('anchor-${anchor.id}')">
             <div class="item-header">
@@ -617,6 +853,7 @@
               <div class="item-detail"><span class="detail-label">Pos (m)</span><span class="detail-value">x=${anchor.x.toFixed(1)}, y=${anchor.y.toFixed(1)}</span></div>
               ${status.ip ? `<div class="item-detail"><span class="detail-label">IP</span><span class="detail-value">${status.ip}</span></div>` : ''}
               ${status.wifi_rssi !== null && status.wifi_rssi !== undefined ? `<div class="item-detail"><span class="detail-label">WiFi</span><span class="detail-value">${status.wifi_rssi}dBm</span></div>` : ''}
+              <div class="item-detail"><span class="detail-label">Update</span><span class="detail-value">${formatAge(lastIso)}</span></div>
             </div>
           </div>`;
       }).join('');
@@ -796,7 +1033,7 @@
           case 'anchor_status': {
             anchorStatusData[data.anchor_id] = data;
             const anchor = anchorsData.find(a => a.id === data.anchor_id);
-            if (anchor) updateAnchorMarker(anchor);
+            if (anchor) updateAnchorMarker(anchor);  // aktualisiert Marker+Popup
             pending.anchors = true;
             scheduleRender();
             break;
@@ -817,6 +1054,19 @@
       };
     }
 
+    // === NEU: Intervall-Refresh für offene Popups & Liste (Alter läuft mit) ===
+    setInterval(() => {
+      anchorsData.forEach(a => {
+        const m = markers[`anchor-${a.id}`];
+        if (m && m.isPopupOpen && m.isPopupOpen()) {
+          m.setPopupContent(buildAnchorPopup(a));
+        }
+      });
+      // Update "Update"-Spalte in der Liste (formatAge)
+      pending.anchors = true;
+      scheduleRender();
+    }, 30000);
+
     // =====================
     // Init & Page Visibility
     // =====================
@@ -834,4 +1084,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -1,22 +1,37 @@
 # api/main.py
 # Main FastAPI application for BLE RTLS Prototype
 
+
 from __future__ import annotations
 
+
 import asyncio
-from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import (
+    FastAPI,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from starlette.requests import Request
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import asyncpg
 import json
 
+
 from .config import get_settings
-from .auth import authenticate_user, create_access_token, get_current_user, get_password_hash
+from .auth import (
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+    get_password_hash,
+)
 from .db import get_db_connection, get_db_instance
 from .schemas import (
     AnchorCreate,
@@ -85,55 +100,92 @@ def create_app() -> FastAPI:
         # Task 1: Poll Positions
         async def poll_positions() -> None:
             nonlocal poll_connection
+
+            # Track last seen position ID per uid to avoid duplicates
+            if not hasattr(poll_positions, "last_seen"):
+                poll_positions.last_seen = {}
+
             while True:
                 try:
                     if poll_connection is None or poll_connection.is_closed():
                         db_url = str(settings.database_url)
-                        db_url_clean = db_url.replace("postgresql+asyncpg", "postgresql")
+                        db_url_clean = db_url.replace(
+                            "postgresql+asyncpg", "postgresql"
+                        )
                         poll_connection = await asyncpg.connect(db_url_clean)
                         print("✓ Poll connection re-established")
 
-                    now = datetime.utcnow()
-                    time_ago = now - timedelta(seconds=10)
+                    # Get LATEST position per uid (not time-windowed)
                     query = """
                         SELECT DISTINCT ON (uid)
                             id, ts, uid, x, y, z, method, q_score, zone,
                             nearest_anchor_id, dist_m, num_anchors, dists
                         FROM positions
-                        WHERE ts > $1
+                        WHERE ts > NOW() - INTERVAL '1 hour'
                         ORDER BY uid, ts DESC
                     """
-                    rows = await poll_connection.fetch(query, time_ago)
+                    rows = await poll_connection.fetch(query)
 
                     if rows:
                         for row in rows:
-                            dists_val = row["dists"]
-                            if isinstance(dists_val, str):
-                                try:
-                                    dists_val = json.loads(dists_val)
-                                except:
-                                    dists_val = {}
+                            row_id = row["id"]
+                            uid = row["uid"]
 
-                            data = {
-                                "type": "position",
-                                "id": row["id"],
-                                "ts": row["ts"].isoformat(),
-                                "uid": row["uid"],
-                                "x": float(row["x"]) if row["x"] is not None else None,
-                                "y": float(row["y"]) if row["y"] is not None else None,
-                                "z": float(row["z"]) if row["z"] is not None else None,
-                                "method": row["method"],
-                                "q_score": float(row["q_score"]) if row["q_score"] is not None else None,
-                                "zone": row["zone"],
-                                "nearest_anchor_id": row["nearest_anchor_id"],
-                                "dist_m": float(row["dist_m"]) if row["dist_m"] is not None else None,
-                                "num_anchors": row["num_anchors"],
-                                "dists": dists_val,
-                            }
-                            try:
-                                positions_queue.put_nowait(data)
-                            except asyncio.QueueFull:
-                                pass
+                            # Only send if we haven't sent this ID before
+                            if (
+                                uid not in poll_positions.last_seen
+                                or poll_positions.last_seen[uid] != row_id
+                            ):
+                                poll_positions.last_seen[uid] = row_id
+
+                                dists_val = row["dists"]
+                                if isinstance(dists_val, str):
+                                    try:
+                                        dists_val = json.loads(dists_val)
+                                    except:
+                                        dists_val = {}
+
+                                data = {
+                                    "type": "position",
+                                    "id": row["id"],
+                                    "ts": row["ts"].isoformat(),
+                                    "uid": row["uid"],
+                                    "x": (
+                                        float(row["x"])
+                                        if row["x"] is not None
+                                        else None
+                                    ),
+                                    "y": (
+                                        float(row["y"])
+                                        if row["y"] is not None
+                                        else None
+                                    ),
+                                    "z": (
+                                        float(row["z"])
+                                        if row["z"] is not None
+                                        else None
+                                    ),
+                                    "method": row["method"],
+                                    "q_score": (
+                                        float(row["q_score"])
+                                        if row["q_score"] is not None
+                                        else None
+                                    ),
+                                    "zone": row["zone"],
+                                    "nearest_anchor_id": row["nearest_anchor_id"],
+                                    "dist_m": (
+                                        float(row["dist_m"])
+                                        if row["dist_m"] is not None
+                                        else None
+                                    ),
+                                    "num_anchors": row["num_anchors"],
+                                    "dists": dists_val,
+                                }
+                                try:
+                                    positions_queue.put_nowait(data)
+                                    print(f"📍 Position sent: {uid}")
+                                except asyncio.QueueFull:
+                                    pass
 
                 except Exception as e:
                     print(f"❌ Poll positions error: {e}")
@@ -150,8 +202,12 @@ def create_app() -> FastAPI:
                             active_devices = await conn.fetchval(
                                 "SELECT COUNT(DISTINCT uid) FROM positions WHERE ts > NOW() - INTERVAL '5 minutes'"
                             )
-                            anchors_count = await conn.fetchval("SELECT COUNT(*) FROM anchors")
-                            wearables_count = await conn.fetchval("SELECT COUNT(*) FROM wearables")
+                            anchors_count = await conn.fetchval(
+                                "SELECT COUNT(*) FROM anchors"
+                            )
+                            wearables_count = await conn.fetchval(
+                                "SELECT COUNT(*) FROM wearables"
+                            )
                             total_positions = await conn.fetchval(
                                 "SELECT COUNT(*) FROM positions WHERE ts > NOW() - INTERVAL '1 day'"
                             )
@@ -166,7 +222,7 @@ def create_app() -> FastAPI:
                                 "total_wearables": wearables_count or 0,
                                 "total_positions": total_positions or 0,
                                 "emergency_count": emergency_count or 0,
-                                "ts": datetime.utcnow().isoformat()
+                                "ts": datetime.now(timezone.utc).isoformat(),
                             }
                             try:
                                 stats_queue.put_nowait(data)
@@ -202,13 +258,29 @@ def create_app() -> FastAPI:
                                 data = {
                                     "type": "scan",
                                     "uid": row["uid"],
-                                    "last_rssi": float(row["last_rssi"]) if row["last_rssi"] is not None else None,
-                                    "last_battery": float(row["last_battery"]) if row["last_battery"] is not None else None,
-                                    "last_temp_c": float(row["last_temp_c"]) if row["last_temp_c"] is not None else None,
+                                    "last_rssi": (
+                                        float(row["last_rssi"])
+                                        if row["last_rssi"] is not None
+                                        else None
+                                    ),
+                                    "last_battery": (
+                                        float(row["last_battery"])
+                                        if row["last_battery"] is not None
+                                        else None
+                                    ),
+                                    "last_temp_c": (
+                                        float(row["last_temp_c"])
+                                        if row["last_temp_c"] is not None
+                                        else None
+                                    ),
                                     "last_tx_power": row["last_tx_power"],
                                     "last_emergency": row["last_emergency"],
-                                    "last_seen": row["last_seen"].isoformat() if row["last_seen"] else None,
-                                    "ts": datetime.utcnow().isoformat()
+                                    "last_seen": (
+                                        row["last_seen"].isoformat()
+                                        if row["last_seen"]
+                                        else None
+                                    ),
+                                    "ts": datetime.now(timezone.utc).isoformat(),
                                 }
                                 try:
                                     scans_queue.put_nowait(data)
@@ -220,7 +292,7 @@ def create_app() -> FastAPI:
 
                 await asyncio.sleep(15)
 
-        # Task 4: Poll Anchor Status
+        # Task 4: Poll Anchor Status (adds is_online based on 5 min freshness)
         async def poll_anchor_status() -> None:
             while True:
                 try:
@@ -234,22 +306,46 @@ def create_app() -> FastAPI:
                             ORDER BY anchor_id, ts DESC
                             """
                             rows = await conn.fetch(query)
+                            now = datetime.now(timezone.utc)
 
                             for row in rows:
+                                last_ts = row["ts"]
+                                if last_ts is not None:
+                                    if last_ts.tzinfo is None:
+                                        last_ts = last_ts.replace(tzinfo=timezone.utc)
+                                    else:
+                                        last_ts = last_ts.astimezone(timezone.utc)
+
+                                is_recent = bool(
+                                    last_ts and (now - last_ts) <= timedelta(minutes=2)
+                                )
+                                is_online = bool(is_recent and row["ble_scan_active"])
+                                age_s = (
+                                    float((now - last_ts).total_seconds())
+                                    if last_ts
+                                    else None
+                                )
+
                                 data = {
                                     "type": "anchor_status",
                                     "anchor_id": row["anchor_id"],
-                                    "ts": row["ts"].isoformat() if row["ts"] else None,
+                                    "ts": last_ts.isoformat() if last_ts else None,
                                     "ip": str(row["ip"]) if row["ip"] else None,
                                     "fw": row["fw"],
                                     "uptime_s": row["uptime_s"],
                                     "wifi_rssi": row["wifi_rssi"],
                                     "heap_free": row["heap_free"],
                                     "heap_min": row["heap_min"],
-                                    "chip_temp_c": float(row["chip_temp_c"]) if row["chip_temp_c"] is not None else None,
+                                    "chip_temp_c": (
+                                        float(row["chip_temp_c"])
+                                        if row["chip_temp_c"] is not None
+                                        else None
+                                    ),
                                     "tx_power_dbm": row["tx_power_dbm"],
                                     "ble_scan_active": row["ble_scan_active"],
-                                    "update_ts": datetime.utcnow().isoformat()
+                                    "is_online": is_online,
+                                    "age_s": age_s,
+                                    "update_ts": now.isoformat(),
                                 }
                                 try:
                                     anchor_status_queue.put_nowait(data)
@@ -286,7 +382,9 @@ def create_app() -> FastAPI:
     @app.get("/anchors", response_model=list[AnchorOut])
     async def list_anchors(conn: asyncpg.Connection = Depends(get_db_connection)):
         try:
-            rows = await conn.fetch("SELECT id, name, x, y, z, created_at FROM anchors ORDER BY id")
+            rows = await conn.fetch(
+                "SELECT id, name, x, y, z, created_at FROM anchors ORDER BY id"
+            )
             result = [AnchorOut(**dict(row)) for row in rows]
             return result
         except Exception as e:
@@ -301,7 +399,9 @@ def create_app() -> FastAPI:
     ):
         uid, role = current
         if role not in {"admin", "operator"}:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+            )
         row = await conn.fetchrow(
             "INSERT INTO anchors (id, name, x, y, z) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, x, y, z, created_at",
             anchor.id,
@@ -316,7 +416,9 @@ def create_app() -> FastAPI:
     @app.get("/wearables", response_model=list[WearableOut])
     async def list_wearables(conn: asyncpg.Connection = Depends(get_db_connection)):
         try:
-            rows = await conn.fetch("SELECT uid, person_ref, role, created_at FROM wearables ORDER BY uid")
+            rows = await conn.fetch(
+                "SELECT uid, person_ref, role, created_at FROM wearables ORDER BY uid"
+            )
             result = [WearableOut(**dict(row)) for row in rows]
             return result
         except Exception as e:
@@ -331,7 +433,9 @@ def create_app() -> FastAPI:
     ):
         uid, role = current
         if role not in {"admin", "operator"}:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized"
+            )
         row = await conn.fetchrow(
             "INSERT INTO wearables (uid, person_ref, role) VALUES ($1, $2, $3) RETURNING uid, person_ref, role, created_at",
             w.uid,
@@ -351,7 +455,7 @@ def create_app() -> FastAPI:
                 "stats": stats_queue.qsize(),
                 "scans": scans_queue.qsize(),
                 "anchor_status": anchor_status_queue.qsize(),
-            }
+            },
         }
 
     # ==================== WEBSOCKET ====================
@@ -368,28 +472,86 @@ def create_app() -> FastAPI:
             if db_instance and db_instance._pool:
                 async with db_instance._pool.acquire() as conn:
                     # Initial anchors
-                    rows = await conn.fetch("SELECT id, name, x, y, z, created_at FROM anchors ORDER BY id")
+                    rows = await conn.fetch(
+                        "SELECT id, name, x, y, z, created_at FROM anchors ORDER BY id"
+                    )
                     for row in rows:
-                        await websocket.send_json({
-                            "type": "anchor",
-                            "id": row["id"],
-                            "name": row["name"],
-                            "x": float(row["x"]),
-                            "y": float(row["y"]),
-                            "z": float(row["z"]),
-                            "created_at": row["created_at"].isoformat()
-                        })
+                        await websocket.send_json(
+                            {
+                                "type": "anchor",
+                                "id": row["id"],
+                                "name": row["name"],
+                                "x": float(row["x"]),
+                                "y": float(row["y"]),
+                                "z": float(row["z"]),
+                                "created_at": row["created_at"].isoformat(),
+                            }
+                        )
 
                     # Initial wearables
-                    rows = await conn.fetch("SELECT uid, person_ref, role, created_at FROM wearables ORDER BY uid")
+                    rows = await conn.fetch(
+                        "SELECT uid, person_ref, role, created_at FROM wearables ORDER BY uid"
+                    )
                     for row in rows:
-                        await websocket.send_json({
-                            "type": "wearable",
-                            "uid": row["uid"],
-                            "person_ref": row["person_ref"],
-                            "role": row["role"],
-                            "created_at": row["created_at"].isoformat()
-                        })
+                        await websocket.send_json(
+                            {
+                                "type": "wearable",
+                                "uid": row["uid"],
+                                "person_ref": row["person_ref"],
+                                "role": row["role"],
+                                "created_at": row["created_at"].isoformat(),
+                            }
+                        )
+
+                    # Initial anchor status (latest per anchor) incl. is_online
+                    status_rows = await conn.fetch(
+                        """
+                        SELECT DISTINCT ON (anchor_id)
+                            anchor_id, ts, ip, fw, uptime_s, wifi_rssi, heap_free, heap_min,
+                            chip_temp_c, tx_power_dbm, ble_scan_active
+                        FROM anchor_status
+                        ORDER BY anchor_id, ts DESC
+                        """
+                    )
+                    now = datetime.now(timezone.utc)
+                    for row in status_rows:
+                        last_ts = row["ts"]
+                        if last_ts is not None:
+                            if last_ts.tzinfo is None:
+                                last_ts = last_ts.replace(tzinfo=timezone.utc)
+                            else:
+                                last_ts = last_ts.astimezone(timezone.utc)
+                        is_recent = bool(
+                            last_ts and (now - last_ts) <= timedelta(minutes=5)
+                        )
+                        is_online = bool(is_recent and row["ble_scan_active"])
+                        age_s = (
+                            float((now - last_ts).total_seconds()) if last_ts else None
+                        )
+
+                        await websocket.send_json(
+                            {
+                                "type": "anchor_status",
+                                "anchor_id": row["anchor_id"],
+                                "ts": last_ts.isoformat() if last_ts else None,
+                                "ip": str(row["ip"]) if row["ip"] else None,
+                                "fw": row["fw"],
+                                "uptime_s": row["uptime_s"],
+                                "wifi_rssi": row["wifi_rssi"],
+                                "heap_free": row["heap_free"],
+                                "heap_min": row["heap_min"],
+                                "chip_temp_c": (
+                                    float(row["chip_temp_c"])
+                                    if row["chip_temp_c"] is not None
+                                    else None
+                                ),
+                                "tx_power_dbm": row["tx_power_dbm"],
+                                "ble_scan_active": row["ble_scan_active"],
+                                "is_online": is_online,
+                                "age_s": age_s,
+                                "update_ts": now.isoformat(),
+                            }
+                        )
 
             print("✓ Initial data sent")
 
@@ -405,9 +567,7 @@ def create_app() -> FastAPI:
 
                 # Wait for first result with 5s timeout
                 done, pending = await asyncio.wait(
-                    get_tasks,
-                    timeout=5.0,
-                    return_when=asyncio.FIRST_COMPLETED
+                    get_tasks, timeout=5.0, return_when=asyncio.FIRST_COMPLETED
                 )
 
                 # Cancel all pending tasks
@@ -443,7 +603,9 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
+
 if __name__ == "__main__":
     import uvicorn
+
     print("🚀 Starting RTLS API on 0.0.0.0:8000")
     uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True)

@@ -103,22 +103,24 @@ services:
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - LOG_LEVEL=DEBUG
-      - PYTHONUNBUFFERED=1
       # important: small window = fast reaction to failures!
-      - WINDOW_SECONDS=7
+      - WINDOW_SECONDS=20
       # faster polling for live updates
-      - POLL_INTERVAL=1.5
+      - POLL_INTERVAL=1.0
       # minimum required anchors for calculation (accuracy)
-      - MIN_ANCHORS=1
+      - MIN_ANCHORS=2
       # top-k anchors used for position calculation
-      - TOP_K=3
-      # EMA smoothing (0.2 = moderate smoothing for live data)
-      - EMA_ALPHA=0.2
+      - TOP_K=2
       # TX-Power reference
-      - TX_POWER_DBM_AT_1M=-80
+      - TX_POWER_DBM_AT_1M=-77
       # Path-Loss-Exponent
-      - PATH_LOSS_EXPONENT=2.2
-      - THROTTLE_S=5.0
+      - PATH_LOSS_EXPONENT=2.3
+      # throttling of position writes
+      - WRITE_THROTTLE_S=5.0
+      # distance weight clamping (to avoid extreme weights)
+      - WEIGHT_DIST_CLAMP_M=1.0
+      # timeout for single-anchor positions
+      - SINGLE_ANCHOR_TIMEOUT_S=60
     depends_on:
       db:
         condition: service_healthy

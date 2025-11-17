@@ -32,7 +32,9 @@ def verify_password(password: str, password_hash: str) -> bool:
     return pwd_context.verify(password, password_hash)
 
 
-def create_access_token(*, subject: str, role: str, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    *, subject: str, role: str, expires_delta: Optional[timedelta] = None
+) -> str:
     """Create a signed JWT for the given subject and role.
 
     :param subject: Unique identifier for the user (e.g. username or uid).
@@ -54,7 +56,9 @@ def create_access_token(*, subject: str, role: str, expires_delta: Optional[time
     return token
 
 
-async def authenticate_user(username: str, password: str, conn: asyncpg.Connection) -> Tuple[str, str]:
+async def authenticate_user(
+    username: str, password: str, conn: asyncpg.Connection
+) -> Tuple[str, str]:
     """Validate the given username and password and return (uid, role).
 
     Raises HTTPException if authentication fails.
@@ -64,10 +68,16 @@ async def authenticate_user(username: str, password: str, conn: asyncpg.Connecti
         username,
     )
     if not row:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password",
+        )
     uid, password_hash, role = row["uid"], row["password_hash"], row["role"]
     if not verify_password(password, password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password",
+        )
     return uid, role
 
 
@@ -84,15 +94,23 @@ async def get_current_user(
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
+        )
     except jwt.PyJWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
     uid = payload.get("sub")
     role = payload.get("role")
     if uid is None or role is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
+        )
     # Optionally verify the user still exists
     row = await conn.fetchrow("SELECT uid, role FROM users WHERE uid=$1", uid)
     if not row:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+        )
     return uid, role

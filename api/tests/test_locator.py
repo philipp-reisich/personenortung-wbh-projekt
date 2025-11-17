@@ -9,7 +9,9 @@ def test_estimate_position_two_anchors():
         Scan(ts=None, anchor_id="A", uid="W", rssi=-50.0, battery=None),
         Scan(ts=None, anchor_id="B", uid="W", rssi=-60.0, battery=None),
     ]
-    x, y, z, q = estimate_position(scans, anchors, tx_power_ref=-59.0, path_loss_exponent=2.0, k=2)
+    x, y, z, q = estimate_position(
+        scans, anchors, tx_power_ref=-59.0, path_loss_exponent=2.0, k=2
+    )
     assert 0.0 <= x <= 10.0
     assert x < 5.0
     assert y == 0.0

@@ -22,7 +22,9 @@ class Database:
     async def connect(self) -> None:
         """Create the connection pool if it doesn't already exist."""
         if self._pool is None:
-            self._pool = await asyncpg.create_pool(str(self.dsn), min_size=1, max_size=10)
+            self._pool = await asyncpg.create_pool(
+                str(self.dsn), min_size=1, max_size=10
+            )
 
     async def disconnect(self) -> None:
         """Close the pool and release all connections."""

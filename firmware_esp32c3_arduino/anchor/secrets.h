@@ -1,7 +1,7 @@
 #pragma once
 // WLAN‑Zugangsdaten
 #define WIFI_SSID       "GL-A1300-c69"
-#define WIFI_PASSWORD   "AB5MNEDHQX"
+#define WIFI_PASSWORD   "XXXXXXXXXXXX"
 // MQTT‑Broker
 #define MQTT_HOST       "192.168.8.209"
 #define MQTT_PORT       1883

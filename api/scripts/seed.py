@@ -29,7 +29,7 @@ async def seed() -> None:
 
         anchors: Sequence[tuple[str, str, float, float, float]] = [
             ("A-01", "Anchor 1", 5.0, 5.0, 2.5),
-            ("A-02", "Anchor 2", 5.0, 20.0, 2.5),
+            ("A-02", "Anchor 2", 5.0, 28.0, 2.5),
         ]
         for aid, name, x, y, z in anchors:
             await conn.execute(
@@ -38,12 +38,16 @@ async def seed() -> None:
                 VALUES ($1, $2, $3, $4, $5)
                 ON CONFLICT (id) DO NOTHING
                 """,
-                aid, name, x, y, z,
+                aid,
+                name,
+                x,
+                y,
+                z,
             )
 
         wearables: Sequence[tuple[str, str, str]] = [
             ("W-01", "alice", "builder 1"),
-            ("W-02", "bob",   "builder 2"),
+            ("W-02", "bob", "builder 2"),
         ]
         for uid, person, role in wearables:
             await conn.execute(
@@ -52,10 +56,13 @@ async def seed() -> None:
                 VALUES ($1, $2, $3)
                 ON CONFLICT (uid) DO NOTHING
                 """,
-                uid, person, role,
+                uid,
+                person,
+                role,
             )
 
         from api.auth import get_password_hash
+
         password_hash = get_password_hash("admin")
         await conn.execute(
             """
@@ -63,7 +70,9 @@ async def seed() -> None:
             VALUES ($1, $2, $3)
             ON CONFLICT (username) DO NOTHING
             """,
-            "admin", password_hash, "admin",
+            "admin",
+            password_hash,
+            "admin",
         )
 
         print("✓ Schema geladen & Seed-Daten (Anchors, Wearables, Admin) erstellt")

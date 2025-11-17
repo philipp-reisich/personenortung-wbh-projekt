@@ -37,7 +37,9 @@ class AnchorOut(AnchorBase):
 
 class WearableBase(BaseModel):
     uid: str = Field(..., description="Unique identifier of the wearable device")
-    person_ref: Optional[str] = Field(None, description="Reference to associated person")
+    person_ref: Optional[str] = Field(
+        None, description="Reference to associated person"
+    )
     role: Optional[str] = Field(None, description="User role or tag type")
 
 
@@ -65,7 +67,7 @@ class PositionOut(BaseModel):
     num_anchors: Optional[int] = None
     dists: Optional[Dict[str, float]] = None
 
-    @validator('dists', pre=True)
+    @validator("dists", pre=True)
     def convert_dists(cls, v):
         """Convert JSONB string to dict if necessary"""
         if isinstance(v, str):
@@ -80,6 +82,7 @@ class PositionOut(BaseModel):
 
 class ScanOut(BaseModel):
     """Schema für letzte Scan-Daten eines Wearables"""
+
     uid: str
     last_rssi: Optional[float] = None
     last_battery: Optional[float] = None
@@ -91,6 +94,7 @@ class ScanOut(BaseModel):
 
 class AnchorStatusOut(BaseModel):
     """Schema für Anchor-Status"""
+
     anchor_id: str
     ts: Optional[datetime] = None
     ip: Optional[str] = None
@@ -103,7 +107,7 @@ class AnchorStatusOut(BaseModel):
     tx_power_dbm: Optional[int] = None
     ble_scan_active: Optional[bool] = None
 
-    @validator('ip', pre=True)
+    @validator("ip", pre=True)
     def convert_ip(cls, v):
         """Convert INET/IPv4Address to string"""
         if v is None:

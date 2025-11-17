@@ -12,6 +12,7 @@ def test_password_hash_and_verify():
 def test_create_access_token_contains_role_and_sub():
     token = create_access_token(subject="user1", role="admin", expires_delta=None)
     import jwt
+
     payload = jwt.decode(token, options={"verify_signature": False})
     assert payload["sub"] == "user1"
     assert payload["role"] == "admin"

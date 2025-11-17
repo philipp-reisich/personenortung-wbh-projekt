@@ -1,5 +1,5 @@
 .vscode/
-**/logs/
+*.log
 **/mosquitto/
 __pycache__
 **/__pycache__/

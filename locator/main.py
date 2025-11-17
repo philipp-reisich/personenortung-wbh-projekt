@@ -1,4 +1,28 @@
 # path: rtls/locator/main.py
+"""Positioning service for the RTLS prototype.
+
+- Periodically reads anchors and recent scans from PostgreSQL
+- Groups scans per uid in a sliding WINDOW_SECONDS time window
+  (per-uid window inside a wider QUERY_WINDOW_FACTOR * WINDOW_SECONDS DB query)
+- For each uid + anchor:
+    - keeps best (strongest) RSSI and latest timestamp within the window
+    - converts RSSI to distance via a log-distance model:
+        d = 10 ** ((TX_POWER_DBM_AT_1M - rssi) / (10 * PATH_LOSS_EXPONENT))
+- Position estimation:
+    - uses up to TOP_K strongest anchors
+    - inverse-distance-squared weighted centroid -> method="proximity"
+    - falls back to nearest anchor if weights degenerate -> "fallback_nearest"
+    - if only one anchor heard -> method="single_anchor" at that anchor's (x, y)
+- Computes a quality score q_score in [0, 1] from:
+    - number of anchors (up to TOP_K)
+    - RSSI spread between strongest and weakest anchor
+- Inserts rows into table positions with:
+    ts=now(), uid, x, y, z=0.0, method, q_score, zone=None,
+    nearest_anchor_id, dist_m, num_anchors, dists (JSON of per-anchor distances)
+- Throttles writes per uid using WRITE_THROTTLE_S (monotonic clock)
+- Runs as a long-lived asyncio loop using an asyncpg connection pool
+"""
+
 from __future__ import annotations
 import asyncio, json, math, os, logging, time
 from typing import Dict, Tuple, List
