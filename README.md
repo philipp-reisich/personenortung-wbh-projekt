@@ -3,6 +3,7 @@ Bitte stelle sicher, dass **Docker** und **Docker Compose** auf deinem System in
 
 ### 🧩 Voraussetzungen
 - [Docker Desktop](https://www.docker.com/get-started/) (oder Docker Engine)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 - `make` (unter macOS und Linux vorinstalliert, unter Windows via WSL verfügbar)
 
 ---
@@ -10,30 +11,40 @@ Bitte stelle sicher, dass **Docker** und **Docker Compose** auf deinem System in
 ### ▶️ Projekt starten
 
 1. **Repository klonen und ins Projektverzeichnis wechseln:**
-   ```
+   ```bash
    git clone <repo-url>
-   cd rtls
+   cd personenortung-wbh-projekt
    ```
 
-2. **Container erstellen und starten:**
+2. **Umgebungsvariablen konfigurieren:**
+   ```bash
+   cp .env.example .env
+   # Bearbeite .env und passe die Werte an (z.B. Passwörter, Ports)
    ```
+
+3. **Container erstellen und starten:**
+   ```bash
    make up
    ```
 
-3. **Backend und Dashboard starten:**
-   ```
-   make start
+4. **Optional: Beispieldaten laden (Anchors, Wearables, Admin-User):**
+   ```bash
+   make seed
    ```
 
-4. **Anschließend ist das Dashboard erreichbar unter:**  
+5. **Dashboard öffnen:**
    👉 http://localhost:8000
+
+   **Standard-Login:**
+   - Benutzername: `admin`
+   - Passwort: `admin` (siehe [api/scripts/seed.py](api/scripts/seed.py))
 
 ---
 
 ### 🛑 Projekt stoppen
 
-Um alle laufenden Container zu beenden und Ressourcen freizugeben:
-```
+Um alle laufenden Container zu beenden:
+```bash
 make down
 ```
 
@@ -41,14 +52,39 @@ make down
 
 ### 📦 Enthaltene Services
 
-| Service                            | Beschreibung                                                                                      |
-|----------------------------------|-------------------------------------------------------------------------------------------------|
-| Backend (Python/FastAPI)          | Stellt die REST- und WebSocket-Schnittstellen bereit und kommuniziert mit der Datenbank.        |
-| TimescaleDB (PostgreSQL-basierte Datenbank) | Speichert Positionsdaten, Scans und Gerätestatus.                                    |
-| MQTT-Broker (z. B. Eclipse Mosquitto)         | Vermittelt Nachrichten zwischen Anchors, Wearables und Backend.                     |
-| Dashboard (HTML/JS – Leaflet-basiert)         | Visualisiert alle Geräte, Positionen und Systemzustände in Echtzeit.                 |
+| Service | Port | Beschreibung |
+|---------|------|--------------|
+| **API (FastAPI)** | 8000 | REST- und WebSocket-Schnittstellen, Dashboard |
+| **TimescaleDB** | 5432 | PostgreSQL-basierte Zeitreihendatenbank |
+| **MQTT Broker (Mosquitto)** | 1883 | Nachrichtenvermittlung zwischen Anchors/Wearables |
+| **Ingestor** | - | Validiert und persistiert MQTT-Nachrichten |
+| **Locator** | - | Berechnet Positionen aus RSSI-Daten |
 
 ---
 
-### 📘 Hinweis:
-Die Datei `.env` enthält alle Konfigurationsparameter (z. B. Zugangsdaten, Ports).  
+### 🔧 Nützliche Befehle
+
+```bash
+make logs          # Live-Logs aller Services anzeigen
+make seed          # Beispieldaten in DB laden
+make test          # Tests ausführen
+make restart       # Services neu starten
+```
+
+---
+
+### 📘 Weitere Dokumentation
+
+- [Architektur](docs/architecture.md) - Systemübersicht und Datenfluss
+- [MQTT Topics](docs/mqtt-topics.md) - Nachrichtenformate und Topics
+- [Privacy & Security](docs/privacy-security.md) - Datenschutzkonzept
+- [Database Schema](db/schema.sql) - Datenbankstruktur
+
+---
+
+### 🔐 Sicherheitshinweis
+
+⚠️ **Wichtig:** Die `.env`-Datei enthält sensible Zugangsdaten. Bitte:
+- Ändere alle Standard-Passwörter vor dem Produktiveinsatz
+- Füge `.env` niemals zu Git hinzu (bereits in [.gitignore](.gitignore) enthalten)
+- Verwende starke, zufällige Passwörter für `SECRET_KEY`, `POSTGRES_PASSWORD`, etc.
