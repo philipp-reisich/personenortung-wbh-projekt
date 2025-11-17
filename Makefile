@@ -1,4 +1,4 @@
-# path: rtls/Makefile
+# path: personenortung-wbh-projekt/Makefile
 
 SHELL := /bin/bash
 COMPOSE = docker-compose --env-file .env -f docker-compose.yaml

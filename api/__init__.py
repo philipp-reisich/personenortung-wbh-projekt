@@ -1,4 +1,4 @@
-# path: rtls/api/__init__.py
+# path: personenortung-wbh-projekt/api/__init__.py
 """FastAPI application for the RTLS prototype.
 
 This package contains the REST and WebSocket endpoints, configuration,

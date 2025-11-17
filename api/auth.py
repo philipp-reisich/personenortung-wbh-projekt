@@ -1,4 +1,4 @@
-# path: rtls/api/auth.py
+# path: personenortung-wbh-projekt/api/auth.py
 """Authentication and authorization utilities using JWT and Argon2.
 
 This module encapsulates user password hashing, token creation and verification,

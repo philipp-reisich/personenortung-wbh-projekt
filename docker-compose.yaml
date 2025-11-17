@@ -1,4 +1,4 @@
-# path: rtls/docker-compose.yaml
+# path: personenortung-wbh-projekt/docker-compose.yaml
 
 services:
   mqtt:

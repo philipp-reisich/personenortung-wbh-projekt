@@ -1,4 +1,4 @@
-# path: rtls/locator/main.py
+# path: personenortung-wbh-projekt/locator/main.py
 """Positioning service for the RTLS prototype.
 
 - Periodically reads anchors and recent scans from PostgreSQL

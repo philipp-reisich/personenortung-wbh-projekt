@@ -1,4 +1,4 @@
-# path: rtls/api/db.py
+# path: personenortung-wbh-projekt/api/db.py
 """Database connection helper functions using asyncpg.
 
 The API uses an async connection pool. A dependency is provided to

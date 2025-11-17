@@ -1,4 +1,4 @@
-# path: rtls/api/Dockerfile
+# path: personenortung-wbh-projekt/api/Dockerfile
 FROM python:3.11-slim
 WORKDIR /app
 

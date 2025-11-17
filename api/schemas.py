@@ -1,4 +1,4 @@
-# path: rtls/api/schemas.py
+# path: personenortung-wbh-projekt/api/schemas.py
 """Pydantic models for request and response payloads.
 
 These classes define the structure of data exchanged via the API. By using

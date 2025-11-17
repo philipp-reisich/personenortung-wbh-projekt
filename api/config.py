@@ -1,4 +1,4 @@
-# path: rtls/api/config.py
+# path: personenortung-wbh-projekt/api/config.py
 """Application configuration loaded from environment variables.
 
 The `Settings` class uses Pydantic to read variables from the environment and
